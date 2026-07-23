@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelola Menu & Stok - Coffee POS System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fa;
+            overflow-x: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Akses Ditolak! Silakan login terlebih dahulu.');
+        window.location.href = '/login.html';
+    }
+</script>
+
+<div class="container-fluid">
+    <div class="row min-vh-100 flex-nowrap">
+
+        <!-- CONTAINER SIDEBAR -->
+        <div id="sidebarContainer" class="col-md-3 col-lg-2 p-0"></div>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+            <!-- HEADER -->
+            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                <div>
+                    <h3 class="fw-bold mb-0"><i class="fa-solid fa-boxes-stacked text-warning me-2"></i> Kelola Menu & Stok</h3>
+                    <p class="text-muted small mb-0">Manajemen daftar produk, harga, dan ketersediaan stok bahan</p>
+                </div>
+
+                <button class="btn btn-warning fw-semibold text-white" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                    <i class="fa-solid fa-plus me-1"></i> Tambah Menu Baru
+                </button>
+            </div>
+
+            <!-- TABEL KELOLA PRODUK -->
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">ID</th>
+                                <th>Nama Produk</th>
+                                <th>Kategori</th>
+                                <th>Harga</th>
+                                <th>Stok</th>
+                                <th class="text-end pe-3">Aksi</th>
+                            </tr>
+                            </thead>
+                            <tbody id="productTableBody">
+                            <tr><td colspan="6" class="text-center py-4 text-muted">Memuat data produk...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<!-- MODAL TAMBAH PRODUK -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-plus-circle text-warning me-2"></i>Tambah Produk Baru</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addProductForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Nama Produk</label>
+                        <input type="text" id="prodName" class="form-control" placeholder="Contoh: Espresso Double" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Kategori</label>
+                        <select id="prodCategory" class="form-select" required>
+                            <option value="Coffee">Coffee</option>
+                            <option value="Non-Coffee">Non-Coffee</option>
+                            <option value="Snack">Snack</option>
+                        </select>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Harga (Rp)</label>
+                            <input type="number" id="prodPrice" class="form-control" placeholder="18000" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Jumlah Stok</label>
+                            <input type="number" id="prodStock" class="form-control" placeholder="50" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning text-white fw-semibold">Simpan Produk</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    async function loadSidebar() {
+        try {
+            const res = await fetch('/components/sidebar.html');
+            const html = await res.text();
+            document.getElementById('sidebarContainer').innerHTML = html;
+
+            const activeLink = document.querySelector('[data-page="products"]');
+            if (activeLink) activeLink.classList.add('active');
+
+            const toggleBtn = document.getElementById('btnToggleSidebar');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    document.body.classList.toggle('sidebar-collapsed');
+                });
+            }
+        } catch (err) {
+            console.error('Gagal memuat sidebar:', err);
+        }
+    }
+
+    function handleLogout() {
+        localStorage.clear();
+        window.location.href = '/login.html';
+    }
+
+    async function loadProducts() {
+        const tbody = document.getElementById('productTableBody');
+        try {
+            const response = await fetch('/api/products');
+            const result = await response.json();
+            const products = result.data || [];
+
+            if (products.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">Belum ada produk terdaftar.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = products.map(p => `
+                <tr>
+                    <td class="ps-3 fw-bold text-secondary">#${p.id}</td>
+                    <td class="fw-semibold text-dark">${p.name}</td>
+                    <td><span class="badge bg-light text-dark border">${p.category || 'General'}</span></td>
+                    <td class="fw-bold text-success">Rp ${Number(p.price).toLocaleString('id-ID')}</td>
+                    <td>
+                        <span class="badge ${p.stock < 10 ? 'bg-danger' : 'bg-success'}">
+                            ${p.stock} pcs
+                        </span>
+                    </td>
+                    <td class="text-end pe-3">
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteProduct(${p.id})">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">Gagal memuat produk.</td></tr>`;
+        }
+    }
+
+    document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = document.getElementById('prodName').value;
+        const category = document.getElementById('prodCategory').value;
+        const price = document.getElementById('prodPrice').value;
+        const stock = document.getElementById('prodStock').value;
+
+        try {
+            const res = await fetch('/api/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, category, price: Number(price), stock: Number(stock) })
+            });
+
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
+                document.getElementById('addProductForm').reset();
+                loadProducts();
+            } else {
+                alert('Gagal menambah produk.');
+            }
+        } catch (err) {
+            console.error('Add product error:', err);
+        }
+    });
+
+    async function deleteProduct(id) {
+        if (!confirm('Apakah Anda yakin ingin menghapus produk ini?')) return;
+        try {
+            const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+            if (res.ok) loadProducts();
+        } catch (e) {
+            console.error('Delete product error:', e);
+        }
+    }
+
+    loadSidebar();
+    loadProducts();
+</script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Keuangan - Coffee POS System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fa;
+            overflow-x: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<script>
+    const token = localStorage.getItem('token');
+    if (!token) {
+        alert('Akses Ditolak! Silakan login terlebih dahulu.');
+        window.location.href = '/login.html';
+    }
+</script>
+
+<div class="container-fluid">
+    <div class="row min-vh-100 flex-nowrap">
+
+        <!-- CONTAINER SIDEBAR -->
+        <div id="sidebarContainer" class="col-md-3 col-lg-2 p-0"></div>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+
+            <!-- HEADER -->
+            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                <div>
+                    <h3 class="fw-bold mb-0"><i class="fa-solid fa-wallet text-warning me-2"></i> Log Keuangan & Arus Kas</h3>
+                    <p class="text-muted small mb-0">Pencatatan saldo harian, pemasukan penjualan, dan pengeluaran operasional</p>
+                </div>
+            </div>
+
+            <!-- SUMMARY CARDS -->
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-md-4">
+                    <div class="card border-0 shadow-sm p-3 border-start border-4 border-success">
+                        <small class="text-muted">Total Pemasukan</small>
+                        <h4 class="fw-bold text-success mb-0" id="totalIncome">Rp 0</h4>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="card border-0 shadow-sm p-3 border-start border-4 border-danger">
+                        <small class="text-muted">Total Pengeluaran Operasional</small>
+                        <h4 class="fw-bold text-danger mb-0" id="totalExpense">Rp 0</h4>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="card border-0 shadow-sm p-3 border-start border-4 border-primary">
+                        <small class="text-muted">Net Cashflow</small>
+                        <h4 class="fw-bold text-primary mb-0" id="netCashflow">Rp 0</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABEL LOG KEUANGAN -->
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white py-3">
+                    <h6 class="fw-bold mb-0"><i class="fa-solid fa-list-check me-2 text-warning"></i> Catatan Transaksi Kas</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">Tipe</th>
+                                <th>Keterangan / Deskripsi</th>
+                                <th>Nominal</th>
+                                <th class="text-end pe-3">Tanggal</th>
+                            </tr>
+                            </thead>
+                            <tbody id="financialLogsBody">
+                            <tr><td colspan="4" class="text-center py-4 text-muted">Memuat data log keuangan...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    async function loadSidebar() {
+        try {
+            const res = await fetch('/components/sidebar.html');
+            const html = await res.text();
+            document.getElementById('sidebarContainer').innerHTML = html;
+
+            const activeLink = document.querySelector('[data-page="financial"]');
+            if (activeLink) activeLink.classList.add('active');
+
+            const toggleBtn = document.getElementById('btnToggleSidebar');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    document.body.classList.toggle('sidebar-collapsed');
+                });
+            }
+        } catch (err) {
+            console.error('Gagal memuat sidebar:', err);
+        }
+    }
+
+    function handleLogout() {
+        localStorage.clear();
+        window.location.href = '/login.html';
+    }
+
+    async function loadFinancialLogs() {
+        const tbody = document.getElementById('financialLogsBody');
+        try {
+            const response = await fetch('/api/transactions/stats');
+            if (response.ok) {
+                const stats = await response.json();
+                const income = stats.total_omset || 0;
+
+                document.getElementById('totalIncome').textContent = `Rp ${Number(income).toLocaleString('id-ID')}`;
+                document.getElementById('totalExpense').textContent = `Rp 0`;
+                document.getElementById('netCashflow').textContent = `Rp ${Number(income).toLocaleString('id-ID')}`;
+
+                tbody.innerHTML = `
+                    <tr>
+                        <td class="ps-3"><span class="badge bg-success">PEMASUKAN</span></td>
+                        <td class="fw-semibold">Total Penjualan Kasir POS</td>
+                        <td class="fw-bold text-success">Rp ${Number(income).toLocaleString('id-ID')}</td>
+                        <td class="text-end pe-3 text-muted small">${new Date().toLocaleDateString('id-ID')}</td>
+                    </tr>
+                `;
+            }
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-danger">Gagal memuat log keuangan.</td></tr>`;
+        }
+    }
+
+    loadSidebar();
+    loadFinancialLogs();
+</script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Pemesanan - Coffee Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #fafaf9;
+            padding-bottom: 90px;
+        }
+
+        .navbar-coffee {
+            background-color: #1c1917;
+        }
+
+        .product-card {
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            background: #ffffff;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .product-img {
+            height: 180px;
+            object-fit: cover;
+            width: 100%;
+        }
+
+        .btn-add-cart {
+            background-color: #d97706;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .btn-add-cart:hover {
+            background-color: #b45309;
+            color: #ffffff;
+        }
+
+        .floating-cart-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 500px;
+            background-color: #1c1917;
+            color: #ffffff;
+            border-radius: 50px;
+            padding: 14px 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR HEADER -->
+<nav class="navbar navbar-dark navbar-coffee sticky-top shadow-sm py-3">
+    <div class="container">
+        <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
+            <i class="fa-solid fa-mug-hot text-warning me-2 fs-4"></i>
+            <span>Coffee Shop Self-Order</span>
+        </a>
+        <a href="/login.html" class="btn btn-outline-light btn-sm rounded-pill px-3">
+            <i class="fa-solid fa-user-lock me-1"></i> Admin Login
+        </a>
+    </div>
+</nav>
+
+<!-- CONTAINER UTAMA -->
+<div class="container my-4">
+    <!-- Hero Banner -->
+    <div class="p-4 rounded-4 bg-dark text-white mb-4 d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #2b1d0c 0%, #44403c 100%);">
+        <div>
+            <span class="badge bg-warning text-dark mb-2 fw-bold">Freshly Brewed Every Day</span>
+            <h2 class="fw-bold mb-1">Pesan Kopi Tanpa Antre</h2>
+            <p class="text-secondary small mb-0">Pilih menu favoritmu, bayar via QRIS, dan kopi siap dinikmati!</p>
+        </div>
+        <i class="fa-solid fa-coffee fs-1 text-warning d-none d-md-block me-3"></i>
+    </div>
+
+    <!-- FILTER KATEGORI -->
+    <div class="d-flex gap-2 overflow-auto pb-3 mb-3" id="categoryFilter">
+        <button class="btn btn-warning rounded-pill fw-semibold px-4 active-cat" onclick="filterMenu('All')">Semua Menu</button>
+        <button class="btn btn-outline-dark rounded-pill fw-semibold px-4" onclick="filterMenu('Coffee')">Coffee</button>
+        <button class="btn btn-outline-dark rounded-pill fw-semibold px-4" onclick="filterMenu('Non-Coffee')">Non-Coffee</button>
+        <button class="btn btn-outline-dark rounded-pill fw-semibold px-4" onclick="filterMenu('Snack')">Snack</button>
+    </div>
+
+    <!-- GRID MENU KOPI -->
+    <div class="row g-3" id="menuGrid">
+        <div class="col-12 text-center py-5 text-muted">
+            <div class="spinner-border text-warning mb-2" role="status"></div>
+            <p>Memuat menu lezat...</p>
+        </div>
+    </div>
+</div>
+
+<!-- FLOATING BAR KERANJANG BELANJA -->
+<div id="cartBar" class="floating-cart-bar d-none" onclick="openCartModal()">
+    <div class="d-flex align-items-center">
+        <div class="bg-warning text-dark rounded-circle px-3 py-1 fw-bold me-3" id="cartBadge">0</div>
+        <div>
+            <div class="small text-secondary">Total Pesanan</div>
+            <div class="fw-bold" id="cartTotalText">Rp 0</div>
+        </div>
+    </div>
+    <button class="btn btn-warning rounded-pill fw-bold px-4 text-dark">
+        Lihat Pesanan <i class="fa-solid fa-arrow-right ms-1"></i>
+    </button>
+</div>
+
+<!-- MODAL CHECKOUT & QRIS -->
+<div class="modal fade" id="modalCart" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-dark text-white border-0">
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-basket-shopping text-warning me-2"></i> Detail Pesanan</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Pilihan Mode Pemesanan -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Tipe Pemesanan</label>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <input type="radio" class="btn-check" name="orderType" id="typeDineIn" value="dine_in" checked onchange="toggleTableInput(true)">
+                            <label class="btn btn-outline-dark w-100 py-2 fw-semibold" for="typeDineIn">
+                                <i class="fa-solid fa-chair me-1"></i> Dine-In (Meja)
+                            </label>
+                        </div>
+                        <div class="col-6">
+                            <input type="radio" class="btn-check" name="orderType" id="typeTakeaway" value="takeaway" onchange="toggleTableInput(false)">
+                            <label class="btn btn-outline-dark w-100 py-2 fw-semibold" for="typeTakeaway">
+                                <i class="fa-solid fa-bag-shopping me-1"></i> Takeaway
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-7">
+                        <label class="form-label fw-semibold small">Nama Pemesan</label>
+                        <input type="text" id="custName" class="form-control" placeholder="Contoh: Budi" required>
+                    </div>
+                    <div class="col-5" id="boxTableNum">
+                        <label class="form-label fw-semibold small">Nomor Meja</label>
+                        <input type="text" id="tableNum" class="form-control" placeholder="Meja 04">
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- Daftar Item Keranjang -->
+                <div id="cartItemsList" class="mb-3"></div>
+
+                <div class="d-flex justify-content-between fw-bold fs-5 mb-3">
+                    <span>Total Bayar:</span>
+                    <span class="text-warning" id="modalCartTotal">Rp 0</span>
+                </div>
+
+                <!-- Tampilan QRIS Dinamis -->
+                <div class="text-center bg-light p-3 rounded-3 mb-3 border">
+                    <p class="small text-muted fw-semibold mb-2">Scan QRIS Ini untuk Pembayaran Instan</p>
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=CoffeeShopPOS_Payment" alt="QRIS" class="img-fluid rounded border shadow-sm">
+                    <small class="d-block text-muted mt-2">Simulasi: Pembayaran Otomatis Dikonfirmasi</small>
+                </div>
+            </div>
+            <div class="modal-footer border-0 bg-light">
+                <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Batal</button>
+                <button type="button" id="btnSubmitOrder" class="btn btn-warning text-dark fw-bold rounded-pill px-4" onclick="submitOrder()">
+                    Konfirmasi & Bayar <i class="fa-solid fa-check-circle me-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    let allProducts = [];
+    let cart = [];
+
+    // 1. Ambil Menu dari Backend
+    async function fetchMenu() {
+        try {
+            const response = await fetch('/api/products');
+            const result = await response.json();
+            allProducts = result.data || [];
+            renderMenu(allProducts);
+        } catch (error) {
+            console.error('Error loading menu:', error);
+        }
+    }
+
+    // 2. Render Kartu Menu
+    function renderMenu(products) {
+        const grid = document.getElementById('menuGrid');
+
+        if (products.length === 0) {
+            grid.innerHTML = `<div class="col-12 text-center py-5 text-muted"><p>Belum ada menu kopi yang tersedia.</p></div>`;
+            return;
+        }
+
+        grid.innerHTML = products.map(p => `
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="card product-card h-100 shadow-sm">
+                    <img src="${p.image_url}" class="product-img" alt="${p.name}">
+                    <div class="card-body d-flex flex-column p-3">
+                        <span class="badge bg-light text-dark align-self-start mb-1 small">${p.category}</span>
+                        <h6 class="fw-bold mb-1 text-dark">${p.name}</h6>
+                        <small class="text-muted mb-2 text-truncate">${p.description || '-'}</small>
+                        <div class="mt-auto d-flex align-items-center justify-content-between">
+                            <span class="fw-bold text-dark">Rp ${Number(p.price).toLocaleString('id-ID')}</span>
+                            ${p.stock > 0
+            ? `<button class="btn btn-add-cart btn-sm px-3" onclick="addToCart(${p.id})"><i class="fa-solid fa-plus"></i></button>`
+            : `<span class="badge bg-danger">Habis</span>`
+        }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // 3. Filter Menu per Kategori
+    function filterMenu(category) {
+        if (category === 'All') {
+            renderMenu(allProducts);
+        } else {
+            renderMenu(allProducts.filter(p => p.category === category));
+        }
+    }
+
+    // 4. Tambah ke Keranjang
+    function addToCart(productId) {
+        const product = allProducts.find(p => p.id === productId);
+        if (!product) return;
+
+        const existing = cart.find(item => item.id === productId);
+        if (existing) {
+            existing.quantity += 1;
+        } else {
+            cart.push({ ...product, quantity: 1 });
+        }
+
+        updateCartUI();
+    }
+
+    // 5. Update Floating Cart Bar UI
+    function updateCartUI() {
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        const cartBar = document.getElementById('cartBar');
+        if (totalItems > 0) {
+            cartBar.classList.remove('d-none');
+            document.getElementById('cartBadge').textContent = totalItems;
+            document.getElementById('cartTotalText').textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
+            document.getElementById('modalCartTotal').textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
+        } else {
+            cartBar.classList.add('d-none');
+        }
+    }
+
+    // 6. Buka Modal Checkout
+    function openCartModal() {
+        const container = document.getElementById('cartItemsList');
+        container.innerHTML = cart.map(item => `
+            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                <div>
+                    <h6 class="fw-bold mb-0">${item.name}</h6>
+                    <small class="text-muted">Rp ${Number(item.price).toLocaleString('id-ID')} x ${item.quantity}</small>
+                </div>
+                <div class="fw-bold">Rp ${(item.price * item.quantity).toLocaleString('id-ID')}</div>
+            </div>
+        `).join('');
+
+        const modal = new bootstrap.Modal(document.getElementById('modalCart'));
+        modal.show();
+    }
+
+    function toggleTableInput(isDineIn) {
+        document.getElementById('boxTableNum').style.display = isDineIn ? 'block' : 'none';
+    }
+
+    // 7. Kirim Pesanan ke Backend
+    async function submitOrder() {
+        const custName = document.getElementById('custName').value.trim();
+        const tableNum = document.getElementById('tableNum').value.trim();
+        const orderType = document.querySelector('input[name="orderType"]:checked').value;
+        const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+        if (!custName) {
+            alert('Silakan masukkan nama pemesan!');
+            return;
+        }
+
+        const payload = {
+            order_type: orderType,
+            table_number: orderType === 'dine_in' ? tableNum : '-',
+            customer_name: custName,
+            items: cart,
+            total_amount: totalPrice
+        };
+
+        try {
+            const response = await fetch('/api/transactions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(`🎉 Pesanan Berhasil! Invoice: ${result.invoiceCode}\nKopi kamu sedang diracik barista.`);
+                cart = [];
+                updateCartUI();
+                bootstrap.Modal.getInstance(document.getElementById('modalCart')).hide();
+                fetchMenu(); // Refresh stok
+            } else {
+                alert('Gagal membuat pesanan: ' + result.message);
+            }
+        } catch (error) {
+            alert('Gagal terhubung ke server!');
+        }
+    }
+
+    fetchMenu();
+</script>
+
+</body>
+</html>

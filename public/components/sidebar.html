@@ -1,0 +1,131 @@
+<nav class="sidebar p-3 d-flex flex-column h-100" id="mainSidebar">
+    <!-- BRAND LOGO + TOMBOL BURGER -->
+    <div class="d-flex align-items-center justify-content-between mb-4 px-1">
+        <div class="d-flex align-items-center gap-2 brand-wrapper overflow-hidden">
+            <i class="fa-solid fa-mug-hot text-warning fs-3 flex-shrink-0"></i>
+            <span class="fs-5 fw-bold text-white lh-1 sidebar-text text-nowrap">Coffee<br><span class="text-warning fs-6">POS System</span></span>
+        </div>
+
+        <!-- Tombol Burger di Dalam Sidebar -->
+        <button type="button" id="btnToggleSidebar" class="btn btn-sm text-secondary hover-warning p-1 border-0" title="Sembunyikan / Tampilkan Sidebar">
+            <i class="fa-solid fa-bars fs-4 text-light"></i>
+        </button>
+    </div>
+
+    <!-- MENU UTAMA -->
+    <ul class="nav flex-column mb-auto" id="sidebarMenu">
+        <li class="nav-item mb-1">
+            <a class="nav-link d-flex align-items-center gap-3" href="/dashboard.html" data-page="dashboard" title="Dashboard KPI">
+                <i class="fa-solid fa-chart-line fs-5 flex-shrink-0"></i>
+                <span class="sidebar-text text-nowrap">Dashboard KPI</span>
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a class="nav-link d-flex align-items-center gap-3" href="/barista-kds.html" data-page="kds" title="Antrean Barista">
+                <i class="fa-solid fa-fire-burner fs-5 flex-shrink-0"></i>
+                <span class="sidebar-text text-nowrap">Antrean Barista</span>
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a class="nav-link d-flex align-items-center gap-3" href="/transactions.html" data-page="transactions" title="Riwayat Transaksi">
+                <i class="fa-solid fa-receipt fs-5 flex-shrink-0"></i>
+                <span class="sidebar-text text-nowrap">Riwayat Transaksi</span>
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a class="nav-link d-flex align-items-center gap-3" href="/financial-logs.html" data-page="financial" title="Log Keuangan">
+                <i class="fa-solid fa-wallet fs-5 flex-shrink-0"></i>
+                <span class="sidebar-text text-nowrap">Log Keuangan</span>
+            </a>
+        </li>
+        <li class="nav-item mb-1">
+            <a class="nav-link d-flex align-items-center gap-3" href="/products.html" data-page="products" title="Kelola Menu & Stok">
+                <i class="fa-solid fa-boxes-stacked fs-5 flex-shrink-0"></i>
+                <span class="sidebar-text text-nowrap">Kelola Menu & Stok</span>
+            </a>
+        </li>
+    </ul>
+
+    <!-- TOMBOL LOGOUT -->
+    <div class="pt-3 border-top border-secondary mt-auto">
+        <button id="btnLogout" class="btn btn-outline-danger w-100 fw-semibold d-flex align-items-center justify-content-center gap-2 py-2" onclick="handleLogout()" title="Keluar">
+            <i class="fa-solid fa-right-from-bracket flex-shrink-0"></i>
+            <span class="sidebar-text text-nowrap">Keluar / Logout</span>
+        </button>
+    </div>
+</nav>
+
+<style>
+    /* Styling Dasar Sidebar */
+    .sidebar {
+        min-height: 100vh;
+        background-color: #1c1917 !important;
+        color: #f5f5f4;
+    }
+
+    .sidebar .nav-link {
+        color: #a8a29e;
+        padding: 10px 12px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+    }
+
+    .sidebar .nav-link:hover {
+        color: #ffffff;
+        background-color: rgba(217, 119, 6, 0.2);
+    }
+
+    .sidebar .nav-link.active {
+        color: #ffffff !important;
+        background-color: #d97706 !important;
+        font-weight: 600;
+    }
+
+    .hover-warning:hover i {
+        color: #d97706 !important;
+    }
+
+    /* Transition Halus */
+    #sidebarContainer, main {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* CSS GLOBAL UNTUK KONDISI SIDEBAR COLLAPSED (MINI) */
+    body.sidebar-collapsed #sidebarContainer {
+        width: 75px !important;
+        flex: 0 0 75px !important;
+        max-width: 75px !important;
+    }
+
+    body.sidebar-collapsed main {
+        width: calc(100% - 75px) !important;
+        flex: 0 0 calc(100% - 75px) !important;
+        max-width: calc(100% - 75px) !important;
+    }
+
+    body.sidebar-collapsed .sidebar-text {
+        display: none !important;
+    }
+
+    body.sidebar-collapsed .sidebar .nav-link {
+        justify-content: center;
+        padding: 12px 0;
+    }
+
+    body.sidebar-collapsed #btnLogout {
+        padding: 8px 0;
+    }
+</style>
+
+<script>
+    // Inisialisasi Otomatis Listener Toggle saat Komponen Sidebar Dimuat
+    (function initSidebarToggle() {
+        const toggleBtn = document.getElementById('btnToggleSidebar');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function () {
+                document.body.classList.toggle('sidebar-collapsed');
+            });
+        }
+    })();
+</script>
