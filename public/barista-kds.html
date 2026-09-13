@@ -170,7 +170,7 @@
     async function updateOrderStatus(orderId, newStatus) {
         try {
             const response = await fetch(`/api/transactions/${orderId}/status`, {
-                method: 'PATCH',
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus })
             });
@@ -178,10 +178,12 @@
             if (response.ok) {
                 loadKDSOrders();
             } else {
-                alert('Gagal mengupdate status pesanan.');
+                const errData = await response.json().catch(() => ({}));
+                alert('Gagal mengupdate status pesanan: ' + (errData.error || response.statusText));
             }
         } catch (e) {
             console.error('Update status error:', e);
+            alert('Terjadi kesalahan jaringan saat mengupdate status.');
         }
     }
 

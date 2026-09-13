@@ -7,6 +7,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Pustaka html2canvas untuk mendownload elemen HTML sebagai gambar -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
         body {
@@ -68,6 +70,90 @@
             justify-content: space-between;
             align-items: center;
         }
+
+        .cart-item-row {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 10px 14px;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+        }
+
+        .quantity-stepper {
+            display: inline-flex;
+            align-items: center;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .qty-action-btn {
+            background: transparent;
+            border: none;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #334155;
+            font-size: 0.75rem;
+        }
+        .qty-action-btn:hover {
+            background: #e2e8f0;
+        }
+        .qty-number {
+            width: 28px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        #cartItemsList::-webkit-scrollbar {
+            width: 6px;
+        }
+        #cartItemsList::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        /* Styling Kartu Pilihan Metode Pembayaran */
+        .pay-method-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fff;
+        }
+        .pay-method-card:hover {
+            border-color: #d97706;
+            background: #fffbeb;
+        }
+        .pay-method-card input[type="radio"]:checked + div {
+            color: #d97706;
+        }
+
+        /* Struk Preview bergaya mini/thermal (bisa panjang ke bawah tanpa terpotong) */
+        .receipt-container-wrapper {
+            display: flex;
+            justify-content: center;
+            background-color: #e5e5e5;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 350px;
+            overflow-y: auto; /* Scroll hanya pada area preview modal jika terlalu panjang */
+        }
+
+        .receipt-box {
+            background: #fff;
+            color: #000;
+            width: 280px; /* Lebar standar kertas thermal kasir */
+            padding: 15px 12px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.78rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 1px dashed #cbd5e1;
+        }
     </style>
 </head>
 <body>
@@ -87,12 +173,11 @@
 
 <!-- CONTAINER UTAMA -->
 <div class="container my-4">
-    <!-- Hero Banner -->
     <div class="p-4 rounded-4 bg-dark text-white mb-4 d-flex align-items-center justify-content-between" style="background: linear-gradient(135deg, #2b1d0c 0%, #44403c 100%);">
         <div>
             <span class="badge bg-warning text-dark mb-2 fw-bold">Freshly Brewed Every Day</span>
             <h2 class="fw-bold mb-1">Pesan Kopi Tanpa Antre</h2>
-            <p class="text-secondary small mb-0">Pilih menu favoritmu, bayar via QRIS, dan kopi siap dinikmati!</p>
+            <p class="text-secondary small mb-0">Pilih menu favoritmu, bayar fleksibel, dan nikmati kopinya!</p>
         </div>
         <i class="fa-solid fa-coffee fs-1 text-warning d-none d-md-block me-3"></i>
     </div>
@@ -105,7 +190,7 @@
         <button class="btn btn-outline-dark rounded-pill fw-semibold px-4" onclick="filterMenu('Snack')">Snack</button>
     </div>
 
-    <!-- GRID MENU KOPI -->
+    <!-- GRID MENU -->
     <div class="row g-3" id="menuGrid">
         <div class="col-12 text-center py-5 text-muted">
             <div class="spinner-border text-warning mb-2" role="status"></div>
@@ -114,7 +199,7 @@
     </div>
 </div>
 
-<!-- FLOATING BAR KERANJANG BELANJA -->
+<!-- FLOATING BAR KERANJANG -->
 <div id="cartBar" class="floating-cart-bar d-none" onclick="openCartModal()">
     <div class="d-flex align-items-center">
         <div class="bg-warning text-dark rounded-circle px-3 py-1 fw-bold me-3" id="cartBadge">0</div>
@@ -128,28 +213,27 @@
     </button>
 </div>
 
-<!-- MODAL CHECKOUT & QRIS -->
+<!-- MODAL 1: RINCIAN KERANJANG -->
 <div class="modal fade" id="modalCart" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header bg-dark text-white border-0">
-                <h5 class="modal-title fw-bold"><i class="fa-solid fa-basket-shopping text-warning me-2"></i> Detail Pesanan</h5>
+            <div class="modal-header bg-dark text-white border-0 py-3">
+                <h5 class="modal-title fw-bold fs-6"><i class="fa-solid fa-basket-shopping text-warning me-2"></i> Rincian Keranjang Pesanan</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4">
-                <!-- Pilihan Mode Pemesanan -->
+            <div class="modal-body p-3">
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Tipe Pemesanan</label>
+                    <label class="form-label fw-bold small">Tipe Pemesanan</label>
                     <div class="row g-2">
                         <div class="col-6">
                             <input type="radio" class="btn-check" name="orderType" id="typeDineIn" value="dine_in" checked onchange="toggleTableInput(true)">
-                            <label class="btn btn-outline-dark w-100 py-2 fw-semibold" for="typeDineIn">
+                            <label class="btn btn-outline-dark w-100 py-2 fw-semibold small" for="typeDineIn">
                                 <i class="fa-solid fa-chair me-1"></i> Dine-In (Meja)
                             </label>
                         </div>
                         <div class="col-6">
                             <input type="radio" class="btn-check" name="orderType" id="typeTakeaway" value="takeaway" onchange="toggleTableInput(false)">
-                            <label class="btn btn-outline-dark w-100 py-2 fw-semibold" for="typeTakeaway">
+                            <label class="btn btn-outline-dark w-100 py-2 fw-semibold small" for="typeTakeaway">
                                 <i class="fa-solid fa-bag-shopping me-1"></i> Takeaway
                             </label>
                         </div>
@@ -159,36 +243,119 @@
                 <div class="row g-2 mb-3">
                     <div class="col-7">
                         <label class="form-label fw-semibold small">Nama Pemesan</label>
-                        <input type="text" id="custName" class="form-control" placeholder="Contoh: Budi" required>
+                        <input type="text" id="custName" class="form-control form-control-sm" placeholder="Contoh: Budi" required>
                     </div>
                     <div class="col-5" id="boxTableNum">
                         <label class="form-label fw-semibold small">Nomor Meja</label>
-                        <input type="text" id="tableNum" class="form-control" placeholder="Meja 04">
+                        <input type="text" id="tableNum" class="form-control form-control-sm" placeholder="Meja 04">
                     </div>
                 </div>
 
-                <hr>
+                <hr class="my-2">
 
-                <!-- Daftar Item Keranjang -->
-                <div id="cartItemsList" class="mb-3"></div>
-
-                <div class="d-flex justify-content-between fw-bold fs-5 mb-3">
-                    <span>Total Bayar:</span>
-                    <span class="text-warning" id="modalCartTotal">Rp 0</span>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label fw-bold small mb-0">Daftar Produk Dipilih</label>
+                    <button type="button" class="btn btn-link text-danger text-decoration-none p-0 small fw-semibold" onclick="clearCartConfirm()">
+                        <i class="fa-solid fa-trash-can me-1"></i> Kosongkan
+                    </button>
                 </div>
 
-                <!-- Tampilan QRIS Dinamis -->
-                <div class="text-center bg-light p-3 rounded-3 mb-3 border">
-                    <p class="small text-muted fw-semibold mb-2">Scan QRIS Ini untuk Pembayaran Instan</p>
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=CoffeeShopPOS_Payment" alt="QRIS" class="img-fluid rounded border shadow-sm">
-                    <small class="d-block text-muted mt-2">Simulasi: Pembayaran Otomatis Dikonfirmasi</small>
+                <div id="cartItemsList" class="mb-3 d-flex flex-column gap-2" style="max-height: 180px; overflow-y: auto; padding-right: 4px;"></div>
+
+                <div class="d-flex justify-content-between align-items-center bg-light p-2 px-3 rounded-3 border">
+                    <span class="fw-bold text-secondary small">Total Pembayaran:</span>
+                    <span class="fw-bold text-warning fs-5" id="modalCartTotal">Rp 0</span>
                 </div>
             </div>
-            <div class="modal-footer border-0 bg-light">
-                <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Batal</button>
-                <button type="button" id="btnSubmitOrder" class="btn btn-warning text-dark fw-bold rounded-pill px-4" onclick="submitOrder()">
-                    Konfirmasi & Bayar <i class="fa-solid fa-check-circle me-1"></i>
+            <div class="modal-footer border-0 bg-light py-2">
+                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-warning btn-sm text-dark fw-bold rounded-pill px-4" onclick="proceedToPayment()">
+                    Pilih Pembayaran <i class="fa-solid fa-arrow-right ms-1"></i>
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 2: PILIHAN METODE PEMBAYARAN -->
+<div class="modal fade" id="modalPayment" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-dark text-white border-0 py-3">
+                <h5 class="modal-title fw-bold fs-6"><i class="fa-solid fa-wallet text-warning me-2"></i> Pilih Metode Pembayaran</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex flex-column gap-3">
+                    <div class="pay-method-card d-flex align-items-center justify-content-between" onclick="selectPayment('qris')">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="fa-solid fa-qrcode fs-3 text-warning"></i>
+                            <div>
+                                <h6 class="fw-bold mb-0">QRIS (GoPay, OVO, Dana, BCA, dll)</h6>
+                                <small class="text-muted">Scan QR dan bayar instan secara digital</small>
+                            </div>
+                        </div>
+                        <input type="radio" name="paymentOption" value="qris" id="optQris" checked>
+                    </div>
+
+                    <div class="pay-method-card d-flex align-items-center justify-content-between" onclick="selectPayment('bank')">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="fa-solid fa-building-columns fs-3 text-primary"></i>
+                            <div>
+                                <h6 class="fw-bold mb-0">Transfer Bank Virtual Account</h6>
+                                <small class="text-muted">BCA, Mandiri, BRI, BNI</small>
+                            </div>
+                        </div>
+                        <input type="radio" name="paymentOption" value="bank" id="optBank">
+                    </div>
+
+                    <div class="pay-method-card d-flex align-items-center justify-content-between" onclick="selectPayment('cash')">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="fa-solid fa-money-bill-wave fs-3 text-success"></i>
+                            <div>
+                                <h6 class="fw-bold mb-0">Tunai (Bayar Langsung di Kasir)</h6>
+                                <small class="text-muted">Bayar ke kasir menggunakan uang tunai</small>
+                            </div>
+                        </div>
+                        <input type="radio" name="paymentOption" value="cash" id="optCash">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 bg-light py-2">
+                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" onclick="backToCartModal()">Kembali</button>
+                <button type="button" class="btn btn-warning btn-sm text-dark fw-bold rounded-pill px-4" onclick="submitOrder()">
+                    Konfirmasi & Bayar <i class="fa-solid fa-check-circle ms-1"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL 3: STRUK DIGITAL KECIL (BERGAYA STRUK KASIR/INDOMARET) -->
+<div class="modal fade" id="modalReceipt" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-dark text-white border-0 py-3">
+                <h5 class="modal-title fw-bold fs-6"><i class="fa-solid fa-circle-check text-warning me-2"></i> Pesanan Berhasil Dibuat!</h5>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small text-center mb-3">Simpan bukti digital ini atau tunjukkan nomor invoice ke kasir.</p>
+
+                <!-- KOTAK PREVIEW STRUK KECIL (PANJANG KE BAWAH) -->
+                <div class="receipt-container-wrapper mb-3">
+                    <div class="receipt-box" id="receiptPreviewContent">
+                        <!-- Diisi lewat JS -->
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-dark btn-sm w-50 rounded-pill fw-semibold" onclick="downloadDigitalReceipt()">
+                        <i class="fa-solid fa-download me-1"></i> Simpan Bukti
+                    </button>
+                    <button type="button" class="btn btn-warning btn-sm text-dark w-50 rounded-pill fw-bold" onclick="finishTransaction()">
+                        <i class="fa-solid fa-house me-1"></i> Selesai / Menu Baru
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -199,8 +366,16 @@
 <script>
     let allProducts = [];
     let cart = [];
+    let cartModal, paymentModal, receiptModal;
+    let lastTransactionData = null;
 
-    // 1. Ambil Menu dari Backend
+    document.addEventListener("DOMContentLoaded", function() {
+        cartModal = new bootstrap.Modal(document.getElementById('modalCart'));
+        paymentModal = new bootstrap.Modal(document.getElementById('modalPayment'));
+        receiptModal = new bootstrap.Modal(document.getElementById('modalReceipt'));
+        fetchMenu();
+    });
+
     async function fetchMenu() {
         try {
             const response = await fetch('/api/products');
@@ -212,12 +387,10 @@
         }
     }
 
-    // 2. Render Kartu Menu
     function renderMenu(products) {
         const grid = document.getElementById('menuGrid');
-
         if (products.length === 0) {
-            grid.innerHTML = `<div class="col-12 text-center py-5 text-muted"><p>Belum ada menu kopi yang tersedia.</p></div>`;
+            grid.innerHTML = `<div class="col-12 text-center py-5 text-muted"><p>Belum ada menu tersedia.</p></div>`;
             return;
         }
 
@@ -233,8 +406,7 @@
                             <span class="fw-bold text-dark">Rp ${Number(p.price).toLocaleString('id-ID')}</span>
                             ${p.stock > 0
             ? `<button class="btn btn-add-cart btn-sm px-3" onclick="addToCart(${p.id})"><i class="fa-solid fa-plus"></i></button>`
-            : `<span class="badge bg-danger">Habis</span>`
-        }
+            : `<span class="badge bg-danger">Habis</span>`}
                         </div>
                     </div>
                 </div>
@@ -242,36 +414,60 @@
         `).join('');
     }
 
-    // 3. Filter Menu per Kategori
     function filterMenu(category) {
-        if (category === 'All') {
-            renderMenu(allProducts);
-        } else {
-            renderMenu(allProducts.filter(p => p.category === category));
-        }
+        if (category === 'All') renderMenu(allProducts);
+        else renderMenu(allProducts.filter(p => p.category === category));
     }
 
-    // 4. Tambah ke Keranjang
     function addToCart(productId) {
         const product = allProducts.find(p => p.id === productId);
         if (!product) return;
 
         const existing = cart.find(item => item.id === productId);
         if (existing) {
-            existing.quantity += 1;
+            if (existing.quantity < product.stock) existing.quantity += 1;
+            else { alert('Stok produk tidak mencukupi!'); return; }
         } else {
             cart.push({ ...product, quantity: 1 });
         }
 
         updateCartUI();
+        if (document.getElementById('modalCart').classList.contains('show')) {
+            renderCartItemsContent();
+        }
     }
 
-    // 5. Update Floating Cart Bar UI
+    function decreaseQuantity(productId) {
+        const index = cart.findIndex(item => item.id === productId);
+        if (index !== -1) {
+            if (cart[index].quantity > 1) cart[index].quantity -= 1;
+            else cart.splice(index, 1);
+        }
+        updateCartUI();
+        if (cart.length === 0) cartModal.hide();
+        else renderCartItemsContent();
+    }
+
+    function removeFromCart(productId) {
+        cart = cart.filter(item => item.id !== productId);
+        updateCartUI();
+        if (cart.length === 0) cartModal.hide();
+        else renderCartItemsContent();
+    }
+
+    function clearCartConfirm() {
+        if (confirm('Kosongkan seluruh keranjang pesanan?')) {
+            cart = [];
+            updateCartUI();
+            cartModal.hide();
+        }
+    }
+
     function updateCartUI() {
         const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
         const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
         const cartBar = document.getElementById('cartBar');
+
         if (totalItems > 0) {
             cartBar.classList.remove('d-none');
             document.getElementById('cartBadge').textContent = totalItems;
@@ -282,43 +478,73 @@
         }
     }
 
-    // 6. Buka Modal Checkout
-    function openCartModal() {
+    function renderCartItemsContent() {
         const container = document.getElementById('cartItemsList');
+        if (cart.length === 0) {
+            container.innerHTML = `<p class="text-center text-muted small py-2">Keranjang kosong.</p>`;
+            return;
+        }
+
         container.innerHTML = cart.map(item => `
-            <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
-                <div>
-                    <h6 class="fw-bold mb-0">${item.name}</h6>
-                    <small class="text-muted">Rp ${Number(item.price).toLocaleString('id-ID')} x ${item.quantity}</small>
+            <div class="cart-item-row d-flex justify-content-between align-items-center">
+                <div style="max-width: 48%;">
+                    <h6 class="fw-bold mb-0 text-dark text-truncate" style="font-size: 0.85rem;">${item.name}</h6>
+                    <small class="text-muted" style="font-size: 0.75rem;">Rp ${Number(item.price).toLocaleString('id-ID')}</small>
                 </div>
-                <div class="fw-bold">Rp ${(item.price * item.quantity).toLocaleString('id-ID')}</div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="quantity-stepper">
+                        <button type="button" class="qty-action-btn" onclick="decreaseQuantity(${item.id})"><i class="fa-solid fa-minus"></i></button>
+                        <span class="qty-number">${item.quantity}</span>
+                        <button type="button" class="qty-action-btn" onclick="addToCart(${item.id})"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <button type="button" class="btn btn-outline-danger btn-sm rounded-2 px-2 py-1" style="font-size: 0.75rem;" onclick="removeFromCart(${item.id})">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
             </div>
         `).join('');
+    }
 
-        const modal = new bootstrap.Modal(document.getElementById('modalCart'));
-        modal.show();
+    function openCartModal() {
+        renderCartItemsContent();
+        cartModal.show();
     }
 
     function toggleTableInput(isDineIn) {
         document.getElementById('boxTableNum').style.display = isDineIn ? 'block' : 'none';
     }
 
-    // 7. Kirim Pesanan ke Backend
+    function proceedToPayment() {
+        const custName = document.getElementById('custName').value.trim();
+        if (!custName) {
+            alert('Silakan masukkan nama pemesan terlebih dahulu!');
+            return;
+        }
+        cartModal.hide();
+        paymentModal.show();
+    }
+
+    function backToCartModal() {
+        paymentModal.hide();
+        cartModal.show();
+    }
+
+    function selectPayment(method) {
+        document.getElementById('opt' + method.charAt(0).toUpperCase() + method.slice(1)).checked = true;
+    }
+
     async function submitOrder() {
         const custName = document.getElementById('custName').value.trim();
         const tableNum = document.getElementById('tableNum').value.trim();
         const orderType = document.querySelector('input[name="orderType"]:checked').value;
+        const payMethod = document.querySelector('input[name="paymentOption"]:checked').value;
         const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-        if (!custName) {
-            alert('Silakan masukkan nama pemesan!');
-            return;
-        }
 
         const payload = {
             order_type: orderType,
             table_number: orderType === 'dine_in' ? tableNum : '-',
             customer_name: custName,
+            payment_method: payMethod,
             items: cart,
             total_amount: totalPrice
         };
@@ -333,11 +559,23 @@
             const result = await response.json();
 
             if (response.ok) {
-                alert(`🎉 Pesanan Berhasil! Invoice: ${result.invoiceCode}\nKopi kamu sedang diracik barista.`);
+                lastTransactionData = {
+                    invoice: result.invoiceCode || 'INV-' + Date.now().toString().slice(-6),
+                    date: new Date().toLocaleString('id-ID'),
+                    customer: custName,
+                    type: orderType === 'dine_in' ? `Dine-In (Meja ${tableNum})` : 'Takeaway',
+                    payment: payMethod.toUpperCase(),
+                    items: [...cart],
+                    total: totalPrice
+                };
+
+                paymentModal.hide();
+                showReceiptModal(lastTransactionData);
+
+                // Reset keranjang
                 cart = [];
                 updateCartUI();
-                bootstrap.Modal.getInstance(document.getElementById('modalCart')).hide();
-                fetchMenu(); // Refresh stok
+                fetchMenu();
             } else {
                 alert('Gagal membuat pesanan: ' + result.message);
             }
@@ -346,7 +584,65 @@
         }
     }
 
-    fetchMenu();
+    function showReceiptModal(data) {
+        const previewHTML = `
+            <div class="text-center fw-bold mb-1" style="font-size: 0.85rem;">COFFEE SHOP</div>
+            <div class="text-center text-muted" style="font-size: 0.7rem; margin-bottom: 8px;">Self-Order System</div>
+            <div style="border-bottom: 1px dashed #000; margin-bottom: 6px;"></div>
+            <div>Inv  : #${data.invoice}</div>
+            <div>Tgl  : ${data.date}</div>
+            <div>Cust : ${data.customer}</div>
+            <div>Tipe : ${data.type}</div>
+            <div>Pay  : ${data.payment}</div>
+            <div style="border-bottom: 1px dashed #000; margin: 6px 0;"></div>
+            <div>
+                ${data.items.map(i => `
+                    <div style="margin-bottom: 6px;">
+                        <div>${i.name}</div>
+                        <div style="display: flex; justify-content: space-between; font-size: 0.73rem; color: #555;">
+                            <span>${i.quantity}x @${Number(i.price).toLocaleString('id-ID')}</span>
+                            <span style="font-weight: 600; color: #000;">Rp ${(i.price * i.quantity).toLocaleString('id-ID')}</span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            <div style="border-bottom: 1px dashed #000; margin: 6px 0;"></div>
+            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 0.85rem;">
+                <span>TOTAL:</span>
+                <span>Rp ${data.total.toLocaleString('id-ID')}</span>
+            </div>
+            <div style="border-bottom: 1px dashed #000; margin: 6px 0;"></div>
+            <div class="text-center text-muted" style="font-size: 0.7rem; margin-top: 8px;">Terima Kasih Telah Memesan!</div>
+            <div class="text-center text-muted" style="font-size: 0.65rem;">Silakan tunjukkan struk ke kasir</div>
+        `;
+        document.getElementById('receiptPreviewContent').innerHTML = previewHTML;
+        receiptModal.show();
+    }
+
+    // Fungsi untuk mendownload struk digital agar terekam penuh tanpa terpotong
+    function downloadDigitalReceipt() {
+        const receiptElement = document.getElementById('receiptPreviewContent');
+
+        html2canvas(receiptElement, {
+            scale: 3,
+            backgroundColor: '#ffffff',
+            windowWidth: receiptElement.scrollWidth,
+            height: receiptElement.scrollHeight,
+            windowHeight: receiptElement.scrollHeight
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Struk-${lastTransactionData ? lastTransactionData.invoice : 'Pesanan'}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }).catch(err => {
+            console.error("Gagal mendownload struk:", err);
+            alert("Gagal menyimpan gambar struk, silakan screenshot layar Anda.");
+        });
+    }
+
+    function finishTransaction() {
+        receiptModal.hide();
+    }
 </script>
 
 </body>
