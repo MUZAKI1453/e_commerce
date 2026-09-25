@@ -141,18 +141,20 @@
             padding: 15px;
             border-radius: 8px;
             max-height: 350px;
-            overflow-y: auto; /* Scroll hanya pada area preview modal jika terlalu panjang */
+            overflow-y: auto;
         }
 
         .receipt-box {
             background: #fff;
             color: #000;
-            width: 280px; /* Lebar standar kertas thermal kasir */
+            width: 280px;
             padding: 15px 12px;
             font-family: 'Courier New', Courier, monospace;
             font-size: 0.78rem;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             border: 1px dashed #cbd5e1;
+            height: fit-content; /* Mengatur tinggi agar pas dengan konten di dalamnya */
+            flex-shrink: 0;     /* Mencegah kotak putih tertekan/terpotong */
         }
     </style>
 </head>
@@ -160,12 +162,12 @@
 
 <!-- NAVBAR HEADER -->
 <nav class="navbar navbar-dark navbar-coffee sticky-top shadow-sm py-3">
-    <div class="container">
-        <a class="navbar-brand fw-bold d-flex align-items-center" href="#">
-            <i class="fa-solid fa-mug-hot text-warning me-2 fs-4"></i>
-            <span>Coffee Shop Self-Order</span>
+    <div class="container d-flex justify-content-between align-items-center flex-nowrap">
+        <a class="navbar-brand fw-bold d-flex align-items-center text-truncate me-2" href="#" style="font-size: 0.95rem; max-width: 70%;">
+            <i class="fa-solid fa-mug-hot text-warning me-2 fs-5 flex-shrink-0"></i>
+            <span class="text-truncate">Coffee Shop Self-Order</span>
         </a>
-        <a href="/login.html" class="btn btn-outline-light btn-sm rounded-pill px-3">
+        <a href="/login.html" class="btn btn-outline-light btn-sm rounded-pill px-3 py-1 text-nowrap flex-shrink-0" style="font-size: 0.78rem;">
             <i class="fa-solid fa-user-lock me-1"></i> Admin Login
         </a>
     </div>
@@ -572,7 +574,6 @@
                 paymentModal.hide();
                 showReceiptModal(lastTransactionData);
 
-                // Reset keranjang
                 cart = [];
                 updateCartUI();
                 fetchMenu();
@@ -619,7 +620,6 @@
         receiptModal.show();
     }
 
-    // Fungsi untuk mendownload struk digital agar terekam penuh tanpa terpotong
     function downloadDigitalReceipt() {
         const receiptElement = document.getElementById('receiptPreviewContent');
 

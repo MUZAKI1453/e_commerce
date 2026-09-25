@@ -1,6 +1,6 @@
 <nav class="sidebar p-3 d-flex flex-column h-100" id="mainSidebar">
     <!-- BRAND LOGO + TOMBOL BURGER -->
-    <div class="d-flex align-items-center justify-content-between mb-4 px-1">
+    <div class="d-flex align-items-center justify-content-between mb-4 px-1 logo-container-wrapper">
         <div class="d-flex align-items-center gap-2 brand-wrapper overflow-hidden">
             <i class="fa-solid fa-mug-hot text-warning fs-3 flex-shrink-0"></i>
             <span class="fs-5 fw-bold text-white lh-1 sidebar-text text-nowrap">Coffee<br><span class="text-warning fs-6">POS System</span></span>
@@ -115,6 +115,19 @@
 
     body.sidebar-collapsed #btnLogout {
         padding: 8px 0;
+    }
+
+    /* Penyesuaian Posisi Logo & Tombol Burger saat Collapse */
+    body.sidebar-collapsed .logo-container-wrapper {
+        flex-direction: column;
+        gap: 12px;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    body.sidebar-collapsed .brand-wrapper {
+        justify-content: center !important;
+        width: 100%;
     }
 </style>
 
