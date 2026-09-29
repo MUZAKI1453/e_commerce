@@ -14,6 +14,37 @@
             background-color: #f8f9fa;
             overflow-x: hidden;
         }
+
+        /* Transisi Kolom Sidebar (Disamakan seperti di dashboard.html) */
+        #sidebarContainer, main {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* STYLE KETIKA SIDEBAR DI-COLLAPSE / MINI */
+        body.sidebar-collapsed #sidebarContainer {
+            width: 75px !important;
+            flex: 0 0 75px !important;
+            max-width: 75px !important;
+        }
+
+        body.sidebar-collapsed main {
+            width: calc(100% - 75px) !important;
+            flex: 0 0 calc(100% - 75px) !important;
+            max-width: calc(100% - 75px) !important;
+        }
+
+        body.sidebar-collapsed .sidebar-text {
+            display: none !important;
+        }
+
+        body.sidebar-collapsed .sidebar .nav-link {
+            justify-content: center;
+            padding: 12px 0;
+        }
+
+        body.sidebar-collapsed #btnLogout {
+            padding: 8px 0;
+        }
     </style>
 </head>
 <body>

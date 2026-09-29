@@ -1,66 +1,91 @@
-<nav class="sidebar p-3 d-flex flex-column h-100" id="mainSidebar">
-    <!-- BRAND LOGO + TOMBOL BURGER -->
-    <div class="d-flex align-items-center justify-content-between mb-4 px-1 logo-container-wrapper">
-        <div class="d-flex align-items-center gap-2 brand-wrapper overflow-hidden">
-            <i class="fa-solid fa-mug-hot text-warning fs-3 flex-shrink-0"></i>
-            <span class="fs-5 fw-bold text-white lh-1 sidebar-text text-nowrap">Coffee<br><span class="text-warning fs-6">POS System</span></span>
+<!-- KODE STRUKTUR SIDEBAR & OVERLAY MOBILE -->
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<aside class="sidebar-container" id="sidebarContainer">
+    <nav class="sidebar p-3 d-flex flex-column h-100" id="mainSidebar">
+        <!-- BRAND LOGO + TOMBOL BURGER / CLOSE -->
+        <div class="d-flex align-items-center justify-content-between mb-4 px-1">
+            <div class="d-flex align-items-center gap-2 brand-wrapper overflow-hidden">
+                <i class="fa-solid fa-mug-hot text-warning fs-3 flex-shrink-0"></i>
+                <span class="fs-5 fw-bold text-white lh-1 sidebar-text text-nowrap">Coffee<br><span class="text-warning fs-6">POS System</span></span>
+            </div>
+
+            <!-- Tombol Toggle -->
+            <button type="button" id="btnToggleSidebar" class="btn btn-sm text-secondary hover-warning p-1 border-0" title="Sembunyikan / Tampilkan Sidebar">
+                <i class="fa-solid fa-bars fs-4 text-light"></i>
+            </button>
         </div>
 
-        <!-- Tombol Burger di Dalam Sidebar -->
-        <button type="button" id="btnToggleSidebar" class="btn btn-sm text-secondary hover-warning p-1 border-0" title="Sembunyikan / Tampilkan Sidebar">
-            <i class="fa-solid fa-bars fs-4 text-light"></i>
-        </button>
-    </div>
+        <!-- MENU UTAMA -->
+        <ul class="nav flex-column mb-auto" id="sidebarMenu">
+            <li class="nav-item mb-1">
+                <a class="nav-link d-flex align-items-center gap-3" href="/dashboard.html" data-page="dashboard" title="Dashboard KPI">
+                    <i class="fa-solid fa-chart-line fs-5 flex-shrink-0"></i>
+                    <span class="sidebar-text text-nowrap">Dashboard KPI</span>
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a class="nav-link d-flex align-items-center gap-3" href="/barista-kds.html" data-page="kds" title="Antrean Barista">
+                    <i class="fa-solid fa-fire-burner fs-5 flex-shrink-0"></i>
+                    <span class="sidebar-text text-nowrap">Antrean Barista</span>
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a class="nav-link d-flex align-items-center gap-3" href="/transactions.html" data-page="transactions" title="Riwayat Transaksi">
+                    <i class="fa-solid fa-receipt fs-5 flex-shrink-0"></i>
+                    <span class="sidebar-text text-nowrap">Riwayat Transaksi</span>
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a class="nav-link d-flex align-items-center gap-3" href="/financial-logs.html" data-page="financial" title="Log Keuangan">
+                    <i class="fa-solid fa-wallet fs-5 flex-shrink-0"></i>
+                    <span class="sidebar-text text-nowrap">Log Keuangan</span>
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a class="nav-link d-flex align-items-center gap-3" href="/products.html" data-page="products" title="Kelola Menu & Stok">
+                    <i class="fa-solid fa-boxes-stacked fs-5 flex-shrink-0"></i>
+                    <span class="sidebar-text text-nowrap">Kelola Menu & Stok</span>
+                </a>
+            </li>
+        </ul>
 
-    <!-- MENU UTAMA -->
-    <ul class="nav flex-column mb-auto" id="sidebarMenu">
-        <li class="nav-item mb-1">
-            <a class="nav-link d-flex align-items-center gap-3" href="/dashboard.html" data-page="dashboard" title="Dashboard KPI">
-                <i class="fa-solid fa-chart-line fs-5 flex-shrink-0"></i>
-                <span class="sidebar-text text-nowrap">Dashboard KPI</span>
-            </a>
-        </li>
-        <li class="nav-item mb-1">
-            <a class="nav-link d-flex align-items-center gap-3" href="/barista-kds.html" data-page="kds" title="Antrean Barista">
-                <i class="fa-solid fa-fire-burner fs-5 flex-shrink-0"></i>
-                <span class="sidebar-text text-nowrap">Antrean Barista</span>
-            </a>
-        </li>
-        <li class="nav-item mb-1">
-            <a class="nav-link d-flex align-items-center gap-3" href="/transactions.html" data-page="transactions" title="Riwayat Transaksi">
-                <i class="fa-solid fa-receipt fs-5 flex-shrink-0"></i>
-                <span class="sidebar-text text-nowrap">Riwayat Transaksi</span>
-            </a>
-        </li>
-        <li class="nav-item mb-1">
-            <a class="nav-link d-flex align-items-center gap-3" href="/financial-logs.html" data-page="financial" title="Log Keuangan">
-                <i class="fa-solid fa-wallet fs-5 flex-shrink-0"></i>
-                <span class="sidebar-text text-nowrap">Log Keuangan</span>
-            </a>
-        </li>
-        <li class="nav-item mb-1">
-            <a class="nav-link d-flex align-items-center gap-3" href="/products.html" data-page="products" title="Kelola Menu & Stok">
-                <i class="fa-solid fa-boxes-stacked fs-5 flex-shrink-0"></i>
-                <span class="sidebar-text text-nowrap">Kelola Menu & Stok</span>
-            </a>
-        </li>
-    </ul>
-
-    <!-- TOMBOL LOGOUT -->
-    <div class="pt-3 border-top border-secondary mt-auto">
-        <button id="btnLogout" class="btn btn-outline-danger w-100 fw-semibold d-flex align-items-center justify-content-center gap-2 py-2" onclick="handleLogout()" title="Keluar">
-            <i class="fa-solid fa-right-from-bracket flex-shrink-0"></i>
-            <span class="sidebar-text text-nowrap">Keluar / Logout</span>
-        </button>
-    </div>
-</nav>
+        <!-- TOMBOL LOGOUT -->
+        <div class="pt-3 border-top border-secondary mt-auto">
+            <button id="btnLogout" class="btn btn-outline-danger w-100 fw-semibold d-flex align-items-center justify-content-center gap-2 py-2" onclick="handleLogout()" title="Keluar">
+                <i class="fa-solid fa-right-from-bracket flex-shrink-0"></i>
+                <span class="sidebar-text text-nowrap">Keluar / Logout</span>
+            </button>
+        </div>
+    </nav>
+</aside>
 
 <style>
     /* Styling Dasar Sidebar */
+    .sidebar-container {
+        width: 260px;
+        flex: 0 0 260px;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        z-index: 1040;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
     .sidebar {
-        min-height: 100vh;
+        height: 100vh;
         background-color: #1c1917 !important;
         color: #f5f5f4;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .sidebar::-webkit-scrollbar {
+        width: 4px;
+    }
+    .sidebar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
     }
 
     .sidebar .nav-link {
@@ -86,58 +111,100 @@
         color: #d97706 !important;
     }
 
-    /* Transition Halus */
-    #sidebarContainer, main {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Backdrop Gelap untuk Mobile/Tablet saat Sidebar Terbuka */
+    .sidebar-backdrop {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1035;
+        opacity: 0;
+        transition: opacity 0.3s ease;
     }
 
-    /* CSS GLOBAL UNTUK KONDISI SIDEBAR COLLAPSED (MINI) */
-    body.sidebar-collapsed #sidebarContainer {
-        width: 75px !important;
-        flex: 0 0 75px !important;
-        max-width: 75px !important;
+    /* MODE DESKTOP (Layar >= 992px): Fitur Collapse */
+    @media (min-width: 992px) {
+        body.sidebar-collapsed .sidebar-container {
+            width: 75px !important;
+            flex: 0 0 75px !important;
+            max-width: 75px !important;
+        }
+
+        body.sidebar-collapsed .sidebar-text {
+            display: none !important;
+        }
+
+        body.sidebar-collapsed .sidebar .nav-link {
+            justify-content: center !important;
+            padding: 12px 0 !important;
+        }
+
+        body.sidebar-collapsed #btnLogout {
+            padding: 8px 0 !important;
+            justify-content: center !important;
+        }
+
+        body.sidebar-collapsed .sidebar .d-flex.align-items-center.justify-content-between {
+            justify-content: center !important;
+        }
+
+        body.sidebar-collapsed .brand-wrapper {
+            display: none !important;
+        }
     }
 
-    body.sidebar-collapsed main {
-        width: calc(100% - 75px) !important;
-        flex: 0 0 calc(100% - 75px) !important;
-        max-width: calc(100% - 75px) !important;
-    }
+    /* MODE TABLET & HP / MOBILE (Layar < 992px): Sembunyikan & Jadikan Drawer Melayang */
+    @media (max-width: 991.98px) {
+        .sidebar-container {
+            position: fixed !important;
+            left: -260px; /* Tersembunyi di luar layar kiri */
+            top: 0;
+            width: 260px !important;
+            flex: 0 0 260px !important;
+        }
 
-    body.sidebar-collapsed .sidebar-text {
-        display: none !important;
-    }
+        /* Ketika tombol toggle diklik di Tablet/HP */
+        body.sidebar-mobile-open .sidebar-container {
+            left: 0 !important; /* Muncul dari sisi kiri */
+        }
 
-    body.sidebar-collapsed .sidebar .nav-link {
-        justify-content: center;
-        padding: 12px 0;
-    }
-
-    body.sidebar-collapsed #btnLogout {
-        padding: 8px 0;
-    }
-
-    /* Penyesuaian Posisi Logo & Tombol Burger saat Collapse */
-    body.sidebar-collapsed .logo-container-wrapper {
-        flex-direction: column;
-        gap: 12px;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-
-    body.sidebar-collapsed .brand-wrapper {
-        justify-content: center !important;
-        width: 100%;
+        body.sidebar-mobile-open .sidebar-backdrop {
+            display: block !important;
+            opacity: 1;
+        }
     }
 </style>
 
 <script>
-    // Inisialisasi Otomatis Listener Toggle saat Komponen Sidebar Dimuat
-    (function initSidebarToggle() {
+    (function initResponsiveSidebar() {
         const toggleBtn = document.getElementById('btnToggleSidebar');
+        const backdrop = document.getElementById('sidebarBackdrop');
+
         if (toggleBtn) {
-            toggleBtn.addEventListener('click', function () {
-                document.body.classList.toggle('sidebar-collapsed');
+            // Hapus event listener ganda jika terpanggil berkali-kali
+            toggleBtn.replaceWith(toggleBtn.cloneNode(true));
+            const newToggleBtn = document.getElementById('btnToggleSidebar');
+
+            newToggleBtn.addEventListener('click', function () {
+                if (window.innerWidth < 992) {
+                    // Tablet & HP: Buka/Tutup Drawer Sidebar Melayang
+                    document.body.classList.toggle('sidebar-mobile-open');
+                } else {
+                    // Desktop: Lebarkan/Kecilkan Sidebar (Collapse)
+                    document.body.classList.toggle('sidebar-collapsed');
+                }
+            });
+        }
+
+        if (backdrop) {
+            backdrop.replaceWith(backdrop.cloneNode(true));
+            const newBackdrop = document.getElementById('sidebarBackdrop');
+
+            newBackdrop.addEventListener('click', function () {
+                document.body.classList.remove('sidebar-mobile-open');
             });
         }
     })();
