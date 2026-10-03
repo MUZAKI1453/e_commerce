@@ -15,35 +15,102 @@
             overflow-x: hidden;
         }
 
-        /* Transisi Kolom Sidebar (Disamakan seperti di dashboard.html) */
+        /* Transisi Kolom Sidebar & Main Content */
         #sidebarContainer, main {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* STYLE KETIKA SIDEBAR DI-COLLAPSE / MINI */
-        body.sidebar-collapsed #sidebarContainer {
-            width: 75px !important;
-            flex: 0 0 75px !important;
-            max-width: 75px !important;
+        /* Backdrop Gelap untuk Mobile/Tablet */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1035;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        body.sidebar-collapsed main {
-            width: calc(100% - 75px) !important;
-            flex: 0 0 calc(100% - 75px) !important;
-            max-width: calc(100% - 75px) !important;
+        /* Pembungkus Konten agar Center dan Rapikan Lebar Maksimal */
+        .main-content-wrapper {
+            width: 100%;
+            max-width: 1350px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
-        body.sidebar-collapsed .sidebar-text {
-            display: none !important;
+        .table td, .table th {
+            padding: 1rem 0.75rem;
         }
 
-        body.sidebar-collapsed .sidebar .nav-link {
-            justify-content: center;
-            padding: 12px 0;
+        /* MODE DESKTOP (Layar >= 992px): Fitur Collapse */
+        @media (min-width: 992px) {
+            #sidebarContainer {
+                width: 260px;
+                flex: 0 0 260px;
+            }
+            main {
+                width: calc(100% - 260px);
+                display: flex;
+                justify-content: center;
+            }
+
+            body.sidebar-collapsed #sidebarContainer {
+                width: 75px !important;
+                flex: 0 0 75px !important;
+                max-width: 75px !important;
+            }
+
+            body.sidebar-collapsed main {
+                width: calc(100% - 75px) !important;
+                flex: 0 0 calc(100% - 75px) !important;
+                max-width: calc(100% - 75px) !important;
+            }
+
+            body.sidebar-collapsed .sidebar-text {
+                display: none !important;
+            }
+
+            body.sidebar-collapsed .sidebar .nav-link {
+                justify-content: center;
+                padding: 12px 0;
+            }
+
+            body.sidebar-collapsed #btnLogout {
+                padding: 8px 0;
+            }
         }
 
-        body.sidebar-collapsed #btnLogout {
-            padding: 8px 0;
+        /* MODE TABLET & HP / MOBILE (Layar < 992px): Drawer Melayang */
+        @media (max-width: 991.98px) {
+            #sidebarContainer {
+                position: fixed !important;
+                top: 0;
+                left: 0;
+                width: 260px !important;
+                height: 100vh;
+                z-index: 1040;
+                transform: translateX(-100%);
+            }
+
+            body.sidebar-mobile-open #sidebarContainer {
+                transform: translateX(0) !important;
+            }
+
+            body.sidebar-mobile-open .sidebar-backdrop {
+                display: block !important;
+                opacity: 1;
+            }
+
+            main {
+                width: 100% !important;
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+                display: block;
+            }
         }
     </style>
 </head>
@@ -57,50 +124,61 @@
     }
 </script>
 
+<!-- Backdrop Gelap untuk Mobile & Tablet -->
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
 <div class="container-fluid">
     <div class="row min-vh-100 flex-nowrap">
 
         <!-- CONTAINER SIDEBAR -->
-        <div id="sidebarContainer" class="col-md-3 col-lg-2 p-0"></div>
+        <div id="sidebarContainer" class="p-0"></div>
 
         <!-- MAIN CONTENT AREA -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+        <main class="px-3 px-md-4 py-4">
+            <div class="main-content-wrapper py-2">
 
-            <!-- HEADER -->
-            <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-                <div>
-                    <h3 class="fw-bold mb-0"><i class="fa-solid fa-receipt text-warning me-2"></i> Riwayat Transaksi</h3>
-                    <p class="text-muted small mb-0">Arsip seluruh histori pesanan dan bukti penjualan kasir</p>
+                <!-- HEADER -->
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
+                    <div class="d-flex align-items-center gap-3">
+                        <!-- Tombol Hamburger Khusus Mobile/Tablet -->
+                        <button class="btn btn-dark d-lg-none" id="btnMobileToggle" type="button" title="Buka Menu">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div>
+                            <h3 class="fw-bold mb-1 fs-4 fs-md-3"><i class="fa-solid fa-receipt text-warning me-2"></i> Riwayat Transaksi</h3>
+                            <p class="text-muted small mb-0 d-none d-sm-block">Arsip seluruh histori pesanan dan bukti penjualan kasir</p>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-outline-dark fw-semibold px-3 py-2 shadow-sm" onclick="loadTransactions()">
+                        <i class="fa-solid fa-rotate me-1"></i> Refresh Data
+                    </button>
                 </div>
 
-                <button class="btn btn-outline-dark btn-sm fw-semibold" onclick="loadTransactions()">
-                    <i class="fa-solid fa-rotate me-1"></i> Refresh Data
-                </button>
-            </div>
-
-            <!-- TABEL TRANSAKSI -->
-            <div class="card border-0 shadow-sm rounded-3">
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                            <tr>
-                                <th class="ps-3">No. Invoice</th>
-                                <th>Pelanggan</th>
-                                <th>Metode Bayar</th>
-                                <th>Total Bayar</th>
-                                <th>Status</th>
-                                <th class="text-end pe-3">Waktu</th>
-                            </tr>
-                            </thead>
-                            <tbody id="transactionTableBody">
-                            <tr><td colspan="6" class="text-center py-4 text-muted">Memuat data transaksi...</td></tr>
-                            </tbody>
-                        </table>
+                <!-- TABEL TRANSAKSI -->
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light text-uppercase fs-7 text-secondary">
+                                <tr>
+                                    <th class="ps-4 py-3">No. Invoice</th>
+                                    <th class="py-3">Pelanggan</th>
+                                    <th class="py-3">Metode Bayar</th>
+                                    <th class="py-3">Total Bayar</th>
+                                    <th class="py-3">Status</th>
+                                    <th class="text-end pe-4 py-3">Waktu</th>
+                                </tr>
+                                </thead>
+                                <tbody id="transactionTableBody">
+                                <tr><td colspan="6" class="text-center py-5 text-muted">Memuat data transaksi...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
 
+            </div>
         </main>
     </div>
 </div>
@@ -116,16 +194,54 @@
             const activeLink = document.querySelector('[data-page="transactions"]');
             if (activeLink) activeLink.classList.add('active');
 
-            const toggleBtn = document.getElementById('btnToggleSidebar');
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', () => {
-                    document.body.classList.toggle('sidebar-collapsed');
-                });
-            }
+            initSidebarEvents();
         } catch (err) {
             console.error('Gagal memuat sidebar:', err);
         }
     }
+
+    function initSidebarEvents() {
+        const toggleBtn = document.getElementById('btnToggleSidebar');
+        const mobileToggleBtn = document.getElementById('btnMobileToggle');
+        const backdrop = document.getElementById('sidebarBackdrop');
+        const sidebarLinks = document.querySelectorAll('#sidebarMenu .nav-link');
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                if (window.innerWidth < 992) {
+                    document.body.classList.remove('sidebar-mobile-open');
+                } else {
+                    document.body.classList.toggle('sidebar-collapsed');
+                }
+            });
+        }
+
+        if (mobileToggleBtn) {
+            mobileToggleBtn.addEventListener('click', () => {
+                document.body.classList.toggle('sidebar-mobile-open');
+            });
+        }
+
+        if (backdrop) {
+            backdrop.addEventListener('click', () => {
+                document.body.classList.remove('sidebar-mobile-open');
+            });
+        }
+
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 992) {
+                    document.body.classList.remove('sidebar-mobile-open');
+                }
+            });
+        });
+    }
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 992) {
+            document.body.classList.remove('sidebar-mobile-open');
+        }
+    });
 
     function handleLogout() {
         localStorage.clear();
@@ -140,22 +256,22 @@
             const list = result.data || [];
 
             if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">Belum ada riwayat transaksi.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">Belum ada riwayat transaksi.</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = list.map(t => `
                 <tr>
-                    <td class="ps-3 fw-bold text-dark">${t.invoice_code || '#' + t.id}</td>
+                    <td class="ps-4 fw-bold text-dark">${t.invoice_code || '#' + t.id}</td>
                     <td>${t.customer_name || 'Pelanggan'}</td>
-                    <td><span class="badge bg-light text-dark border">${t.payment_method || 'QRIS/Cash'}</span></td>
+                    <td><span class="badge bg-light text-dark border px-2 py-1">${t.payment_method || 'QRIS/Cash'}</span></td>
                     <td class="fw-bold text-success">Rp ${Number(t.total_amount).toLocaleString('id-ID')}</td>
-                    <td><span class="badge bg-success">${t.status}</span></td>
-                    <td class="text-end pe-3 text-muted small">${new Date(t.createdAt || Date.now()).toLocaleString('id-ID')}</td>
+                    <td><span class="badge bg-success px-2 py-1">${t.status}</span></td>
+                    <td class="text-end pe-4 text-muted small">${new Date(t.createdAt || Date.now()).toLocaleString('id-ID')}</td>
                 </tr>
             `).join('');
         } catch (e) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-danger">Gagal memuat riwayat transaksi.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-danger">Gagal memuat riwayat transaksi.</td></tr>`;
         }
     }
 

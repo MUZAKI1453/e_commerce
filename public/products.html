@@ -15,44 +15,103 @@
             overflow-x: hidden;
         }
 
-        /* Transisi Kolom Sidebar (Disamakan seperti di dashboard.html) */
+        /* Transisi Kolom Sidebar & Main Content */
         #sidebarContainer, main {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Memberikan ruang bernapas agar layout tidak terasa terlalu padat */
+        /* Backdrop Gelap untuk Mobile/Tablet */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1035;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* PERBAIKAN: Memastikan wrapper konten fleksibel dan terpusat dengan max-width yang proporsional */
         .main-content-wrapper {
+            width: 100%;
             max-width: 1350px;
-            margin: 0 auto;
+            margin-left: auto;
+            margin-right: auto;
         }
+
         .table td, .table th {
-            padding: 1rem 0.75rem; /* Padding baris tabel lebih longgar */
+            padding: 1rem 0.75rem;
         }
 
-        /* STYLE KETIKA SIDEBAR DI-COLLAPSE / MINI */
-        body.sidebar-collapsed #sidebarContainer {
-            width: 75px !important;
-            flex: 0 0 75px !important;
-            max-width: 75px !important;
+        /* MODE DESKTOP (Layar >= 992px): Fitur Collapse */
+        @media (min-width: 992px) {
+            #sidebarContainer {
+                width: 260px;
+                flex: 0 0 260px;
+            }
+            main {
+                width: calc(100% - 260px);
+                /* Memastikan area main fleksibel dan merata ke tengah */
+                display: flex;
+                justify-content: center;
+            }
+
+            body.sidebar-collapsed #sidebarContainer {
+                width: 75px !important;
+                flex: 0 0 75px !important;
+                max-width: 75px !important;
+            }
+
+            body.sidebar-collapsed main {
+                width: calc(100% - 75px) !important;
+                flex: 0 0 calc(100% - 75px) !important;
+                max-width: calc(100% - 75px) !important;
+            }
+
+            body.sidebar-collapsed .sidebar-text {
+                display: none !important;
+            }
+
+            body.sidebar-collapsed .sidebar .nav-link {
+                justify-content: center;
+                padding: 12px 0;
+            }
+
+            body.sidebar-collapsed #btnLogout {
+                padding: 8px 0;
+            }
         }
 
-        body.sidebar-collapsed main {
-            width: calc(100% - 75px) !important;
-            flex: 0 0 calc(100% - 75px) !important;
-            max-width: calc(100% - 75px) !important;
-        }
+        /* MODE TABLET & HP / MOBILE (Layar < 992px): Drawer Melayang */
+        @media (max-width: 991.98px) {
+            #sidebarContainer {
+                position: fixed !important;
+                top: 0;
+                left: 0;
+                width: 260px !important;
+                height: 100vh;
+                z-index: 1040;
+                transform: translateX(-100%);
+            }
 
-        body.sidebar-collapsed .sidebar-text {
-            display: none !important;
-        }
+            body.sidebar-mobile-open #sidebarContainer {
+                transform: translateX(0) !important;
+            }
 
-        body.sidebar-collapsed .sidebar .nav-link {
-            justify-content: center;
-            padding: 12px 0;
-        }
+            body.sidebar-mobile-open .sidebar-backdrop {
+                display: block !important;
+                opacity: 1;
+            }
 
-        body.sidebar-collapsed #btnLogout {
-            padding: 8px 0;
+            main {
+                width: 100% !important;
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+                display: block; /* Normal flow untuk mobile */
+            }
         }
     </style>
 </head>
@@ -66,21 +125,30 @@
     }
 </script>
 
+<!-- Backdrop Gelap untuk Mobile & Tablet -->
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
 <div class="container-fluid">
     <div class="row min-vh-100 flex-nowrap">
 
         <!-- CONTAINER SIDEBAR -->
-        <div id="sidebarContainer" class="col-md-3 col-lg-2 p-0"></div>
+        <div id="sidebarContainer" class="p-0"></div>
 
         <!-- MAIN CONTENT AREA -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+        <main class="px-3 px-md-4 py-4">
             <div class="main-content-wrapper py-2">
 
                 <!-- HEADER HALAMAN -->
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
-                    <div>
-                        <h3 class="fw-bold mb-1"><i class="fa-solid fa-boxes-stacked text-warning me-2"></i> Kelola Menu & Stok</h3>
-                        <p class="text-muted small mb-0">Manajemen daftar produk, harga, dan ketersediaan stok bahan kedai kopi</p>
+                    <div class="d-flex align-items-center gap-3">
+                        <!-- Tombol Hamburger Khusus Mobile/Tablet -->
+                        <button class="btn btn-dark d-lg-none" id="btnMobileToggle" type="button" title="Buka Menu">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div>
+                            <h3 class="fw-bold mb-1 fs-4 fs-md-3"><i class="fa-solid fa-boxes-stacked text-warning me-2"></i> Kelola Menu & Stok</h3>
+                            <p class="text-muted small mb-0 d-none d-sm-block">Manajemen daftar produk, harga, dan ketersediaan stok bahan kedai kopi</p>
+                        </div>
                     </div>
 
                     <button class="btn btn-warning fw-semibold text-white px-4 py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#addProductModal">
@@ -286,16 +354,54 @@
             const activeLink = document.querySelector('[data-page="products"]');
             if (activeLink) activeLink.classList.add('active');
 
-            const toggleBtn = document.getElementById('btnToggleSidebar');
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', () => {
-                    document.body.classList.toggle('sidebar-collapsed');
-                });
-            }
+            initSidebarEvents();
         } catch (err) {
             console.error('Gagal memuat sidebar:', err);
         }
     }
+
+    function initSidebarEvents() {
+        const toggleBtn = document.getElementById('btnToggleSidebar');
+        const mobileToggleBtn = document.getElementById('btnMobileToggle');
+        const backdrop = document.getElementById('sidebarBackdrop');
+        const sidebarLinks = document.querySelectorAll('#sidebarMenu .nav-link');
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                if (window.innerWidth < 992) {
+                    document.body.classList.remove('sidebar-mobile-open');
+                } else {
+                    document.body.classList.toggle('sidebar-collapsed');
+                }
+            });
+        }
+
+        if (mobileToggleBtn) {
+            mobileToggleBtn.addEventListener('click', () => {
+                document.body.classList.toggle('sidebar-mobile-open');
+            });
+        }
+
+        if (backdrop) {
+            backdrop.addEventListener('click', () => {
+                document.body.classList.remove('sidebar-mobile-open');
+            });
+        }
+
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 992) {
+                    document.body.classList.remove('sidebar-mobile-open');
+                }
+            });
+        });
+    }
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 992) {
+            document.body.classList.remove('sidebar-mobile-open');
+        }
+    });
 
     function handleLogout() {
         localStorage.clear();

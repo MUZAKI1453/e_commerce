@@ -4,7 +4,7 @@
 <aside class="sidebar-container" id="sidebarContainer">
     <nav class="sidebar p-3 d-flex flex-column h-100" id="mainSidebar">
         <!-- BRAND LOGO + TOMBOL BURGER / CLOSE -->
-        <div class="d-flex align-items-center justify-content-between mb-4 px-1">
+        <div class="d-flex align-items-center justify-content-between mb-4 px-1 brand-container">
             <div class="d-flex align-items-center gap-2 brand-wrapper overflow-hidden">
                 <i class="fa-solid fa-mug-hot text-warning fs-3 flex-shrink-0"></i>
                 <span class="fs-5 fw-bold text-white lh-1 sidebar-text text-nowrap">Coffee<br><span class="text-warning fs-6">POS System</span></span>
@@ -69,7 +69,7 @@
         position: sticky;
         top: 0;
         z-index: 1040;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .sidebar {
@@ -147,8 +147,10 @@
             justify-content: center !important;
         }
 
-        body.sidebar-collapsed .sidebar .d-flex.align-items-center.justify-content-between {
+        body.sidebar-collapsed .brand-container {
             justify-content: center !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
         }
 
         body.sidebar-collapsed .brand-wrapper {
@@ -156,19 +158,20 @@
         }
     }
 
-    /* MODE TABLET & HP / MOBILE (Layar < 992px): Sembunyikan & Jadikan Drawer Melayang */
+    /* MODE TABLET & HP / MOBILE (Layar < 992px): Drawer Melayang dari Kiri */
     @media (max-width: 991.98px) {
         .sidebar-container {
             position: fixed !important;
-            left: -260px; /* Tersembunyi di luar layar kiri */
+            left: 0;
             top: 0;
+            transform: translateX(-100%); /* Sembunyikan mulus menggunakan transform */
             width: 260px !important;
             flex: 0 0 260px !important;
         }
 
-        /* Ketika tombol toggle diklik di Tablet/HP */
+        /* Ketika aktif/terbuka di mobile/tablet */
         body.sidebar-mobile-open .sidebar-container {
-            left: 0 !important; /* Muncul dari sisi kiri */
+            transform: translateX(0) !important;
         }
 
         body.sidebar-mobile-open .sidebar-backdrop {
@@ -182,18 +185,18 @@
     (function initResponsiveSidebar() {
         const toggleBtn = document.getElementById('btnToggleSidebar');
         const backdrop = document.getElementById('sidebarBackdrop');
+        const sidebarLinks = document.querySelectorAll('#sidebarMenu .nav-link');
 
         if (toggleBtn) {
-            // Hapus event listener ganda jika terpanggil berkali-kali
             toggleBtn.replaceWith(toggleBtn.cloneNode(true));
             const newToggleBtn = document.getElementById('btnToggleSidebar');
 
             newToggleBtn.addEventListener('click', function () {
                 if (window.innerWidth < 992) {
-                    // Tablet & HP: Buka/Tutup Drawer Sidebar Melayang
+                    // Mobile / Tablet: Toggle Drawer Melayang
                     document.body.classList.toggle('sidebar-mobile-open');
                 } else {
-                    // Desktop: Lebarkan/Kecilkan Sidebar (Collapse)
+                    // Desktop: Toggle Lebar/Kecil Sidebar (Collapse)
                     document.body.classList.toggle('sidebar-collapsed');
                 }
             });
@@ -207,5 +210,21 @@
                 document.body.classList.remove('sidebar-mobile-open');
             });
         }
+
+        // UX Tambahan: Otomatis menutup sidebar di mobile ketika salah satu menu diklik
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', function () {
+                if (window.innerWidth < 992) {
+                    document.body.classList.remove('sidebar-mobile-open');
+                }
+            });
+        });
+
+        // Handle penyesuaian otomatis jika ukuran layar diubah (Resize handler)
+        window.addEventListener('resize', function () {
+            if (window.innerWidth >= 992) {
+                document.body.classList.remove('sidebar-mobile-open');
+            }
+        });
     })();
 </script>

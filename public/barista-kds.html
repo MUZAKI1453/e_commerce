@@ -15,9 +15,14 @@
             overflow-x: hidden;
         }
 
-        /* Transisi Kolom Sidebar (Disamakan seperti di dashboard.html) */
-        #sidebarContainer, main {
+        /* Layout Dasar & Transisi */
+        #sidebarContainer {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        main {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
         }
 
         .kds-card {
@@ -43,30 +48,68 @@
             border-bottom: 2px solid #3b82f6;
         }
 
-        /* STYLE KETIKA SIDEBAR DI-COLLAPSE / MINI */
-        body.sidebar-collapsed #sidebarContainer {
-            width: 75px !important;
-            flex: 0 0 75px !important;
-            max-width: 75px !important;
+        /* --- STYLING RESPONSIF SIDEBAR & BACKDROP --- */
+        .sidebar-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1035;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        body.sidebar-collapsed main {
-            width: calc(100% - 75px) !important;
-            flex: 0 0 calc(100% - 75px) !important;
-            max-width: calc(100% - 75px) !important;
+        /* MODE DESKTOP (Layar >= 992px): Fitur Collapse */
+        @media (min-width: 992px) {
+            #sidebarContainer {
+                width: 260px;
+                flex: 0 0 260px;
+            }
+            main {
+                width: calc(100% - 260px);
+            }
+
+            body.sidebar-collapsed #sidebarContainer {
+                width: 75px !important;
+                flex: 0 0 75px !important;
+                max-width: 75px !important;
+            }
+
+            body.sidebar-collapsed main {
+                width: calc(100% - 75px) !important;
+            }
         }
 
-        body.sidebar-collapsed .sidebar-text {
-            display: none !important;
-        }
+        /* MODE TABLET & HP / MOBILE (Layar < 992px): Drawer Melayang */
+        @media (max-width: 991.98px) {
+            #sidebarContainer {
+                position: fixed !important;
+                top: 0;
+                left: 0;
+                width: 260px !important;
+                height: 100vh;
+                z-index: 1040;
+                transform: translateX(-100%); /* Sembunyikan total ke kiri */
+            }
 
-        body.sidebar-collapsed .sidebar .nav-link {
-            justify-content: center;
-            padding: 12px 0;
-        }
+            /* Ketika sidebar dibuka via tombol mobile */
+            body.sidebar-mobile-open #sidebarContainer {
+                transform: translateX(0) !important;
+            }
 
-        body.sidebar-collapsed #btnLogout {
-            padding: 8px 0;
+            body.sidebar-mobile-open .sidebar-backdrop {
+                display: block !important;
+                opacity: 1;
+            }
+
+            main {
+                width: 100% !important;
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+            }
         }
     </style>
 </head>
@@ -80,24 +123,33 @@
     }
 </script>
 
+<!-- Backdrop Gelap untuk Mobile/Tablet -->
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
 <div class="container-fluid">
     <div class="row min-vh-100 flex-nowrap">
 
         <!-- CONTAINER SIDEBAR -->
-        <div id="sidebarContainer" class="col-md-3 col-lg-2 p-0"></div>
+        <div id="sidebarContainer" class="p-0"></div>
 
         <!-- MAIN CONTENT AREA -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+        <main class="px-3 px-md-4 py-4">
 
             <!-- HEADER -->
             <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-                <div>
-                    <h3 class="fw-bold mb-0"><i class="fa-solid fa-fire-burner text-warning me-2"></i> Kitchen Display System (KDS)</h3>
-                    <p class="text-muted small mb-0">Monitor dan kelola antrean pembuatan pesanan barista secara real-time</p>
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Tombol Hamburger Khusus Mobile/Tablet untuk Memunculkan Sidebar -->
+                    <button class="btn btn-dark d-lg-none" id="btnMobileToggle" type="button" title="Buka Menu">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div>
+                        <h3 class="fw-bold mb-0 fs-4 fs-md-3"><i class="fa-solid fa-fire-burner text-warning me-2"></i> Kitchen Display System (KDS)</h3>
+                        <p class="text-muted small mb-0 d-none d-sm-block">Monitor dan kelola antrean pembuatan pesanan barista secara real-time</p>
+                    </div>
                 </div>
 
-                <button class="btn btn-outline-dark btn-sm fw-semibold" onclick="loadKDSOrders()">
-                    <i class="fa-solid fa-rotate me-1"></i> Refresh Antrean
+                <button class="btn btn-outline-dark btn-sm fw-semibold flex-shrink-0" onclick="loadKDSOrders()">
+                    <i class="fa-solid fa-rotate me-1"></i> <span class="d-none d-sm-inline">Refresh</span>
                 </button>
             </div>
 
@@ -124,16 +176,60 @@
             const activeLink = document.querySelector('[data-page="kds"]');
             if (activeLink) activeLink.classList.add('active');
 
-            const toggleBtn = document.getElementById('btnToggleSidebar');
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', () => {
-                    document.body.classList.toggle('sidebar-collapsed');
-                });
-            }
+            // Inisialisasi Event setelah Sidebar Berhasil Dimuat
+            initSidebarEvents();
         } catch (err) {
             console.error('Gagal memuat sidebar:', err);
         }
     }
+
+    function initSidebarEvents() {
+        const toggleBtn = document.getElementById('btnToggleSidebar');
+        const mobileToggleBtn = document.getElementById('btnMobileToggle');
+        const backdrop = document.getElementById('sidebarBackdrop');
+        const sidebarLinks = document.querySelectorAll('#sidebarMenu .nav-link');
+
+        // Tombol Toggle di dalam Sidebar (untuk Desktop Collapse & Mobile Close)
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                if (window.innerWidth < 992) {
+                    document.body.classList.remove('sidebar-mobile-open');
+                } else {
+                    document.body.classList.toggle('sidebar-collapsed');
+                }
+            });
+        }
+
+        // Tombol Toggle di Header Utama khusus Mobile/Tablet
+        if (mobileToggleBtn) {
+            mobileToggleBtn.addEventListener('click', () => {
+                document.body.classList.toggle('sidebar-mobile-open');
+            });
+        }
+
+        // Klik Backdrop untuk menutup sidebar di mobile
+        if (backdrop) {
+            backdrop.addEventListener('click', () => {
+                document.body.classList.remove('sidebar-mobile-open');
+            });
+        }
+
+        // Auto-close sidebar di mobile saat salah satu menu diklik
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 992) {
+                    document.body.classList.remove('sidebar-mobile-open');
+                }
+            });
+        });
+    }
+
+    // Handle Resize Windows
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 992) {
+            document.body.classList.remove('sidebar-mobile-open');
+        }
+    });
 
     function handleLogout() {
         localStorage.clear();
@@ -218,9 +314,9 @@
         }
     }
 
+    // Jalankan pemuatan awal
     loadSidebar();
     loadKDSOrders();
-    // Auto Refresh KDS tiap 10 detik
     setInterval(loadKDSOrders, 10000);
 </script>
 </body>
