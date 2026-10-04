@@ -12,12 +12,51 @@
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #f8f9fa;
-            overflow-x: hidden;
+            overflow: hidden; /* Mengunci scroll body utama */
+            margin: 0;
+            height: 100vh;
+        }
+
+        /* Layout Fleksibel Utama */
+        .app-wrapper {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
         }
 
         /* Transisi Kolom Sidebar & Main Content */
         #sidebarContainer, main {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Mengatur Main agar flex column dan bagian isinya saja yang scroll */
+        main {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fa;
+            overflow: hidden;
+        }
+
+        /* Sticky Header yang Solid & Aman dari Konten Menembus */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa;
+            z-index: 1030;
+            padding: 14px 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+            flex-shrink: 0;
+            box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Konten di bawah header yang bisa di-scroll */
+        .scrollable-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
         }
 
         /* Backdrop Gelap untuk Mobile/Tablet */
@@ -34,7 +73,7 @@
             transition: opacity 0.3s ease;
         }
 
-        /* PERBAIKAN: Memastikan wrapper konten fleksibel dan terpusat dengan max-width yang proporsional */
+        /* Pembungkus Konten agar Center dan Rapikan Lebar Maksimal */
         .main-content-wrapper {
             width: 100%;
             max-width: 1350px;
@@ -50,25 +89,25 @@
         @media (min-width: 992px) {
             #sidebarContainer {
                 width: 260px;
+                min-width: 260px;
                 flex: 0 0 260px;
+                height: 100vh;
+                overflow-y: auto;
             }
             main {
+                flex: 1 1 auto;
                 width: calc(100% - 260px);
-                /* Memastikan area main fleksibel dan merata ke tengah */
-                display: flex;
-                justify-content: center;
+                min-width: 0;
             }
 
             body.sidebar-collapsed #sidebarContainer {
                 width: 75px !important;
+                min-width: 75px !important;
                 flex: 0 0 75px !important;
-                max-width: 75px !important;
             }
 
             body.sidebar-collapsed main {
                 width: calc(100% - 75px) !important;
-                flex: 0 0 calc(100% - 75px) !important;
-                max-width: calc(100% - 75px) !important;
             }
 
             body.sidebar-collapsed .sidebar-text {
@@ -85,16 +124,18 @@
             }
         }
 
-        /* MODE TABLET & HP / MOBILE (Layar < 992px): Drawer Melayang */
+        /* MODE TABLET & HP / MOBILE (Layar < 992px) */
         @media (max-width: 991.98px) {
             #sidebarContainer {
                 position: fixed !important;
                 top: 0;
                 left: 0;
                 width: 260px !important;
+                min-width: 260px !important;
                 height: 100vh;
                 z-index: 1040;
                 transform: translateX(-100%);
+                overflow-y: auto;
             }
 
             body.sidebar-mobile-open #sidebarContainer {
@@ -108,9 +149,16 @@
 
             main {
                 width: 100% !important;
-                flex: 0 0 100% !important;
-                max-width: 100% !important;
-                display: block; /* Normal flow untuk mobile */
+                flex: 1 1 100% !important;
+                min-width: 0;
+            }
+
+            .sticky-header {
+                padding: 10px 1rem;
+            }
+
+            .scrollable-content {
+                padding: 1rem;
             }
         }
     </style>
@@ -128,33 +176,33 @@
 <!-- Backdrop Gelap untuk Mobile & Tablet -->
 <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-<div class="container-fluid">
-    <div class="row min-vh-100 flex-nowrap">
+<div class="app-wrapper">
+    <!-- CONTAINER SIDEBAR -->
+    <div id="sidebarContainer" class="p-0"></div>
 
-        <!-- CONTAINER SIDEBAR -->
-        <div id="sidebarContainer" class="p-0"></div>
-
-        <!-- MAIN CONTENT AREA -->
-        <main class="px-3 px-md-4 py-4">
-            <div class="main-content-wrapper py-2">
-
-                <!-- HEADER HALAMAN -->
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom">
-                    <div class="d-flex align-items-center gap-3">
-                        <!-- Tombol Hamburger Khusus Mobile/Tablet -->
-                        <button class="btn btn-dark d-lg-none" id="btnMobileToggle" type="button" title="Buka Menu">
-                            <i class="fa-solid fa-bars"></i>
-                        </button>
-                        <div>
-                            <h3 class="fw-bold mb-1 fs-4 fs-md-3"><i class="fa-solid fa-boxes-stacked text-warning me-2"></i> Kelola Menu & Stok</h3>
-                            <p class="text-muted small mb-0 d-none d-sm-block">Manajemen daftar produk, harga, dan ketersediaan stok bahan kedai kopi</p>
-                        </div>
-                    </div>
-
-                    <button class="btn btn-warning fw-semibold text-white px-4 py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#addProductModal">
-                        <i class="fa-solid fa-plus me-1"></i> Tambah Menu Baru
-                    </button>
+    <!-- MAIN CONTENT AREA -->
+    <main>
+        <!-- STICKY HEADER -->
+        <div class="sticky-header d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <!-- Tombol Hamburger Khusus Mobile/Tablet -->
+                <button class="btn btn-light border d-lg-none p-2 rounded-3 shadow-sm" id="btnMobileToggle" type="button" title="Buka Menu">
+                    <i class="fa-solid fa-bars text-dark"></i>
+                </button>
+                <div>
+                    <h4 class="fw-bold mb-0 text-dark fs-5 fs-md-4"><i class="fa-solid fa-boxes-stacked text-warning me-2"></i> Kelola Menu & Stok</h4>
+                    <p class="text-muted small mb-0 d-none d-sm-block">Manajemen daftar produk, harga, dan ketersediaan stok bahan kedai kopi</p>
                 </div>
+            </div>
+
+            <button class="btn btn-warning btn-sm fw-semibold text-white px-3 py-2 shadow-sm flex-shrink-0" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                <i class="fa-solid fa-plus me-1"></i> Tambah Menu Baru
+            </button>
+        </div>
+
+        <!-- KONTEN UTAMA YANG BISA DI-SCROLL -->
+        <div class="scrollable-content">
+            <div class="main-content-wrapper">
 
                 <!-- SEARCH BAR & FILTER SECTION -->
                 <div class="row mb-4">
@@ -191,8 +239,8 @@
                 </div>
 
             </div>
-        </main>
-    </div>
+        </div>
+    </main>
 </div>
 
 <!-- ========================================== -->
