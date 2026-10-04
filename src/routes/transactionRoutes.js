@@ -154,4 +154,21 @@ router.put('/:id/status', (req, res) => {
     });
 });
 
+
+// 7. GET: Ambil Tren Pendapatan Harian untuk Grafik
+router.get('/revenue-trend', (req, res) => {
+    const query = `
+        SELECT DATE(created_at) as date, SUM(amount) as total
+        FROM FinancialLog
+        WHERE type = 'income'
+        GROUP BY DATE(created_at)
+        ORDER BY DATE(created_at) ASC
+        LIMIT 7
+    `;
+    db.all(query, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ data: rows || [] });
+    });
+});
+
 module.exports = router;

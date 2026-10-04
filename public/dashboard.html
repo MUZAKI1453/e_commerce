@@ -189,7 +189,7 @@
 
     <!-- MAIN CONTENT AREA -->
     <main>
-        <!-- HEADER ALA GEMINI (Sticky Tetap di Atas & Tidak Tertembus) -->
+        <!-- HEADER (Sticky Tetap di Atas & Tidak Tertembus) -->
         <div class="sticky-header d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center gap-2">
                 <!-- Tombol Menu Hamburger Mobile -->
@@ -197,12 +197,6 @@
                     <i class="fa-solid fa-bars text-dark"></i>
                 </button>
                 <h4 class="fw-bold mb-0 text-dark fs-5 fs-md-4">Dashboard</h4>
-            </div>
-
-            <div class="d-flex align-items-center">
-                <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill fw-medium" style="font-size: 11px;">
-                    <i class="fa-solid fa-circle me-1" style="font-size: 7px;"></i> System Online
-                </span>
             </div>
         </div>
 
@@ -455,10 +449,21 @@
                 document.getElementById('statLowStock').textContent = `${products.filter(p => p.stock < 10).length} Produk`;
             }
 
-            // 4. Data Grafik
-            const dummyLabels = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-            const dummyValues = [350000, 420000, 390000, 510000, 680000, 950000, 870000];
-            initSalesChart(dummyLabels, dummyValues);
+            // 4. Data Grafik Real dari Endpoint /api/transactions/revenue-trend
+            const resTrend = await fetch('/api/transactions/revenue-trend');
+            if (resTrend.ok) {
+                const trendJson = await resTrend.json();
+                const trendData = trendJson.data || [];
+
+                if (trendData.length > 0) {
+                    const labels = trendData.map(item => item.date);
+                    const totals = trendData.map(item => item.total);
+                    initSalesChart(labels, totals);
+                } else {
+                    // Fallback jika belum ada data transaksi sama sekali di database
+                    initSalesChart(['Belum ada data'], [0]);
+                }
+            }
 
         } catch (e) {
             console.error('Error loading dashboard overview:', e);
