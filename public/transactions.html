@@ -12,12 +12,11 @@
         body {
             font-family: 'Poppins', sans-serif;
             background-color: #f8f9fa;
-            overflow: hidden; /* Mengunci scroll body utama */
+            overflow: hidden;
             margin: 0;
             height: 100vh;
         }
 
-        /* Layout Fleksibel Utama */
         .app-wrapper {
             display: flex;
             width: 100vw;
@@ -26,12 +25,10 @@
             overflow: hidden;
         }
 
-        /* Transisi Kolom Sidebar & Main Content */
         #sidebarContainer, main {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Mengatur Main agar flex column dan bagian isinya saja yang scroll */
         main {
             height: 100vh;
             display: flex;
@@ -40,7 +37,6 @@
             overflow: hidden;
         }
 
-        /* Sticky Header yang Solid & Aman dari Konten Menembus */
         .sticky-header {
             position: sticky;
             top: 0;
@@ -52,14 +48,12 @@
             box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.05);
         }
 
-        /* Konten di bawah header yang bisa di-scroll */
         .scrollable-content {
             flex-grow: 1;
             overflow-y: auto;
             padding: 1.5rem;
         }
 
-        /* Backdrop Gelap untuk Mobile/Tablet */
         .sidebar-backdrop {
             display: none;
             position: fixed;
@@ -73,7 +67,6 @@
             transition: opacity 0.3s ease;
         }
 
-        /* Pembungkus Konten agar Center dan Rapikan Lebar Maksimal */
         .main-content-wrapper {
             width: 100%;
             max-width: 1350px;
@@ -85,7 +78,6 @@
             padding: 1rem 0.75rem;
         }
 
-        /* MODE DESKTOP (Layar >= 992px): Fitur Collapse */
         @media (min-width: 992px) {
             #sidebarContainer {
                 width: 260px;
@@ -124,7 +116,6 @@
             }
         }
 
-        /* MODE TABLET & HP / MOBILE (Layar < 992px) */
         @media (max-width: 991.98px) {
             #sidebarContainer {
                 position: fixed !important;
@@ -204,6 +195,31 @@
         <div class="scrollable-content">
             <div class="main-content-wrapper">
 
+                <!-- SEARCH & FILTER SECTION -->
+                <div class="row g-2 mb-4">
+                    <div class="col-12 col-md-6 col-lg-5">
+                        <div class="input-group shadow-sm">
+                            <span class="input-group-text bg-white border-end-0 ps-3"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+                            <input type="text" id="searchInput" class="form-control border-start-0 ps-0 py-2" placeholder="Cari nama pelanggan atau no. invoice...">
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-3">
+                        <select id="filterPayment" class="form-select shadow-sm py-2">
+                            <option value="ALL">Semua Pembayaran</option>
+                            <option value="QRIS">QRIS</option>
+                            <option value="CASH">Cash / Tunai</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-3">
+                        <select id="filterStatus" class="form-select shadow-sm py-2">
+                            <option value="ALL">Semua Status</option>
+                            <option value="PAID">PAID</option>
+                            <option value="COMPLETED">COMPLETED</option>
+                            <option value="CANCELLED">CANCELLED</option>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- TABEL TRANSAKSI -->
                 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
                     <div class="card-body p-0">
@@ -216,7 +232,7 @@
                                     <th class="py-3">Metode Bayar</th>
                                     <th class="py-3">Total Bayar</th>
                                     <th class="py-3">Status</th>
-                                    <th class="text-end pe-4 py-3">Waktu</th>
+                                    <th class="text-end pe-4 py-3">Waktu & Tanggal</th>
                                 </tr>
                                 </thead>
                                 <tbody id="transactionTableBody">
@@ -234,6 +250,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    let allTransactions = [];
+
     async function loadSidebar() {
         try {
             const res = await fetch('/components/sidebar.html');
@@ -297,32 +315,69 @@
         window.location.href = '/login.html';
     }
 
+    function renderTable(list) {
+        const tbody = document.getElementById('transactionTableBody');
+
+        if (list.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">Tidak ada riwayat transaksi yang cocok.</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = list.map(t => {
+            const rawDate = t.created_at || t.createdAt || Date.now();
+            const formattedDate = new Date(rawDate).toLocaleString('id-ID', {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            });
+
+            return `
+                <tr>
+                    <td class="ps-4 fw-bold text-dark">${t.invoice_code || '#' + t.id}</td>
+                    <td>${t.customer_name || 'Pelanggan'}</td>
+                    <td><span class="badge bg-light text-dark border px-2 py-1">${t.payment_method || 'QRIS'}</span></td>
+                    <td class="fw-bold text-success">Rp ${Number(t.total_amount).toLocaleString('id-ID')}</td>
+                    <td><span class="badge bg-success px-2 py-1">${t.status}</span></td>
+                    <td class="text-end pe-4 text-muted small">${formattedDate}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
     async function loadTransactions() {
         const tbody = document.getElementById('transactionTableBody');
         try {
             const response = await fetch('/api/transactions/history');
             const result = await response.json();
-            const list = result.data || [];
-
-            if (list.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">Belum ada riwayat transaksi.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = list.map(t => `
-                <tr>
-                    <td class="ps-4 fw-bold text-dark">${t.invoice_code || '#' + t.id}</td>
-                    <td>${t.customer_name || 'Pelanggan'}</td>
-                    <td><span class="badge bg-light text-dark border px-2 py-1">${t.payment_method || 'QRIS/Cash'}</span></td>
-                    <td class="fw-bold text-success">Rp ${Number(t.total_amount).toLocaleString('id-ID')}</td>
-                    <td><span class="badge bg-success px-2 py-1">${t.status}</span></td>
-                    <td class="text-end pe-4 text-muted small">${new Date(t.createdAt || Date.now()).toLocaleString('id-ID')}</td>
-                </tr>
-            `).join('');
+            allTransactions = result.data || [];
+            filterTransactions();
         } catch (e) {
             tbody.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-danger">Gagal memuat riwayat transaksi.</td></tr>`;
         }
     }
+
+    // Fungsi Filter & Pencarian Client-Side Real-time
+    function filterTransactions() {
+        const searchKeyword = document.getElementById('searchInput').value.toLowerCase().trim();
+        const selectedPayment = document.getElementById('filterPayment').value;
+        const selectedStatus = document.getElementById('filterStatus').value;
+
+        const filtered = allTransactions.filter(t => {
+            const matchSearch = (t.customer_name && t.customer_name.toLowerCase().includes(searchKeyword)) ||
+                (t.invoice_code && t.invoice_code.toLowerCase().includes(searchKeyword));
+
+            const matchPayment = selectedPayment === 'ALL' || (t.payment_method && t.payment_method.toUpperCase() === selectedPayment);
+            const matchStatus = selectedStatus === 'ALL' || (t.status && t.status.toUpperCase() === selectedStatus);
+
+            return matchSearch && matchPayment && matchStatus;
+        });
+
+        renderTable(filtered);
+    }
+
+    // Event Listener untuk Filter & Search
+    document.getElementById('searchInput').addEventListener('input', filterTransactions);
+    document.getElementById('filterPayment').addEventListener('change', filterTransactions);
+    document.getElementById('filterStatus').addEventListener('change', filterTransactions);
 
     loadSidebar();
     loadTransactions();

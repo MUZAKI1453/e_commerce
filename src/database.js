@@ -26,16 +26,18 @@ function initCompleteSchema() {
             )
         `);
 
-        // 2. Tabel Product (Lengkap dengan category)
+        // 2. Tabel Product (Dilengkapi dengan buy_price dan is_packaged untuk otomatisasi restock/pengeluaran)
         db.run(`
             CREATE TABLE IF NOT EXISTS "Product" (
                                                      "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                                                      "name" TEXT NOT NULL,
                                                      "description" TEXT,
                                                      "price" REAL NOT NULL,
+                                                     "buy_price" REAL DEFAULT 0,
                                                      "stock" INTEGER NOT NULL DEFAULT 0,
                                                      "image_url" TEXT,
                                                      "category" TEXT DEFAULT 'Coffee',
+                                                     "is_packaged" INTEGER NOT NULL DEFAULT 0,
                                                      "is_perishable" INTEGER NOT NULL DEFAULT 0,
                                                      "expiry_date" DATETIME
             )

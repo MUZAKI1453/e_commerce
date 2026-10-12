@@ -46,10 +46,16 @@
             top: 0;
             background-color: #f8f9fa;
             z-index: 1030;
-            padding: 14px 1.5rem;
+            padding: 12px 1rem;
             border-bottom: 1px solid #dee2e6;
             flex-shrink: 0;
             box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+        }
+
+        @media (min-width: 992px) {
+            .sticky-header {
+                padding: 14px 1.5rem;
+            }
         }
 
         /* Konten di bawah header yang bisa di-scroll */
@@ -159,10 +165,6 @@
                 min-width: 0;
             }
 
-            .sticky-header {
-                padding: 10px 1rem;
-            }
-
             .scrollable-content {
                 padding: 1rem;
             }
@@ -189,20 +191,24 @@
     <!-- MAIN CONTENT AREA -->
     <main>
         <!-- STICKY HEADER -->
-        <div class="sticky-header d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center gap-2">
+        <div class="sticky-header d-flex justify-content-between align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 min-width-0">
                 <!-- Tombol Hamburger Khusus Mobile/Tablet untuk Memunculkan Sidebar -->
-                <button class="btn btn-light border d-lg-none p-2 rounded-3 shadow-sm" id="btnMobileToggle" type="button" title="Buka Menu">
+                <button class="btn btn-light border d-lg-none p-2 rounded-3 shadow-sm flex-shrink-0" id="btnMobileToggle" type="button" title="Buka Menu">
                     <i class="fa-solid fa-bars text-dark"></i>
                 </button>
-                <div>
-                    <h4 class="fw-bold mb-0 text-dark fs-5 fs-md-4"><i class="fa-solid fa-fire-burner text-warning me-2"></i> Kitchen Display System (KDS)</h4>
-                    <p class="text-muted small mb-0 d-none d-sm-block">Monitor dan kelola antrean pembuatan pesanan barista secara real-time</p>
+                <div class="min-width-0 text-truncate">
+                    <h4 class="fw-bold mb-0 text-dark fs-6 fs-sm-5 fs-md-4 text-truncate">
+                        <i class="fa-solid fa-fire-burner text-warning me-1"></i>
+                        <span class="d-inline d-sm-none">KDS (Antrean)</span>
+                        <span class="d-none d-sm-inline">Kitchen Display System (KDS)</span>
+                    </h4>
+                    <p class="text-muted small mb-0 d-none d-md-block text-truncate">Monitor dan kelola antrean pembuatan pesanan barista secara real-time</p>
                 </div>
             </div>
 
-            <button class="btn btn-outline-dark btn-sm fw-semibold flex-shrink-0" onclick="loadKDSOrders()">
-                <i class="fa-solid fa-rotate me-1"></i> <span class="d-none d-sm-inline">Refresh</span>
+            <button class="btn btn-outline-dark btn-sm fw-semibold flex-shrink-0 px-2 px-md-3" onclick="loadKDSOrders()">
+                <i class="fa-solid fa-rotate me-0 me-sm-1"></i> <span class="d-none d-sm-inline">Refresh</span>
             </button>
         </div>
 
@@ -322,12 +328,16 @@
                         </div>
                         <div class="card-body">
                             <ul class="list-group list-group-flush mb-3">
-                                ${(order.items || []).map(item => `
-                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                        <span class="fw-semibold">${item.product_name || 'Menu'}</span>
-                                        <span class="badge bg-secondary rounded-pill">x${item.quantity}</span>
-                                    </li>
-                                `).join('')}
+                                ${(order.items || []).map(item => {
+                const itemName = item.name || item.product_name || item.item_name || item.title || 'Menu';
+                const itemQty = item.quantity || item.qty || 1;
+                return `
+                                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                            <span class="fw-semibold">${itemName}</span>
+                                            <span class="badge bg-secondary rounded-pill">x${itemQty}</span>
+                                        </li>
+                                    `;
+            }).join('')}
                             </ul>
                         </div>
                         <div class="card-footer bg-white border-0 p-3 pt-0">

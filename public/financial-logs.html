@@ -221,7 +221,7 @@
                 <!-- TABEL LOG KEUANGAN -->
                 <div class="card border-0 shadow-sm rounded-3">
                     <div class="card-header bg-white py-3">
-                        <h6 class="fw-bold mb-0"><i class="fa-solid fa-list-check me-2 text-warning"></i> Catatan Transaksi Kas</h6>
+                        <h6 class="fw-bold mb-0"><i class="fa-solid fa-list-check me-2 text-warning"></i> Catatan Transaksi Kas & Arus Kas</h6>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -231,7 +231,7 @@
                                     <th class="ps-3">Tipe</th>
                                     <th>Keterangan / Deskripsi</th>
                                     <th>Nominal</th>
-                                    <th class="text-end pe-3">Tanggal</th>
+                                    <th class="text-end pe-3">Tanggal & Waktu</th>
                                 </tr>
                                 </thead>
                                 <tbody id="financialLogsBody">
@@ -258,7 +258,6 @@
             const activeLink = document.querySelector('[data-page="financial"]');
             if (activeLink) activeLink.classList.add('active');
 
-            // Inisialisasi event setelah sidebar selesai dimuat
             initSidebarEvents();
         } catch (err) {
             console.error('Gagal memuat sidebar:', err);
@@ -316,26 +315,62 @@
     async function loadFinancialLogs() {
         const tbody = document.getElementById('financialLogsBody');
         try {
-            const response = await fetch('/api/transactions/stats');
+            const response = await fetch('/api/transactions/financial-logs');
             if (response.ok) {
-                const stats = await response.json();
-                const income = stats.total_omset || 0;
+                const result = await response.json();
+                const logs = result.data || [];
 
-                document.getElementById('totalIncome').textContent = `Rp ${Number(income).toLocaleString('id-ID')}`;
-                document.getElementById('totalExpense').textContent = `Rp 0`;
-                document.getElementById('netCashflow').textContent = `Rp ${Number(income).toLocaleString('id-ID')}`;
+                let totalIncome = 0;
+                let totalExpense = 0;
 
-                tbody.innerHTML = `
-                    <tr>
-                        <td class="ps-3"><span class="badge bg-success">PEMASUKAN</span></td>
-                        <td class="fw-semibold">Total Penjualan Kasir POS</td>
-                        <td class="fw-bold text-success">Rp ${Number(income).toLocaleString('id-ID')}</td>
-                        <td class="text-end pe-3 text-muted small">${new Date().toLocaleDateString('id-ID')}</td>
-                    </tr>
-                `;
+                logs.forEach(log => {
+                    if (log.type === 'income') {
+                        totalIncome += Number(log.amount) || 0;
+                    } else if (log.type === 'expense') {
+                        totalExpense += Number(log.amount) || 0;
+                    }
+                });
+
+                const netCashflow = totalIncome - totalExpense;
+
+                document.getElementById('totalIncome').textContent = `Rp ${totalIncome.toLocaleString('id-ID')}`;
+                document.getElementById('totalExpense').textContent = `Rp ${totalExpense.toLocaleString('id-ID')}`;
+                document.getElementById('netCashflow').textContent = `Rp ${netCashflow.toLocaleString('id-ID')}`;
+
+                if (logs.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-muted">Belum ada catatan log keuangan.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = logs.map(log => {
+                    const isIncome = log.type === 'income';
+                    const badgeClass = isIncome ? 'bg-success' : 'bg-danger';
+                    const textClass = isIncome ? 'text-success' : 'text-danger';
+                    const typeLabel = isIncome ? 'PEMASUKAN' : 'PENGELUARAN';
+
+                    let formattedDate = '-';
+                    if (log.created_at) {
+                        formattedDate = new Date(log.created_at).toLocaleString('id-ID', {
+                            dateStyle: 'medium',
+                            timeStyle: 'short'
+                        });
+                    }
+
+                    return `
+                        <tr>
+                            <td class="ps-3"><span class="badge ${badgeClass}">${typeLabel}</span></td>
+                            <td class="fw-semibold">${log.description || '-'}</td>
+                            <td class="fw-bold ${textClass}">Rp ${Number(log.amount).toLocaleString('id-ID')}</td>
+                            <td class="text-end pe-3 text-muted small">${formattedDate}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } else {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-danger">Gagal memuat log keuangan dari server.</td></tr>`;
             }
         } catch (e) {
-            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-danger">Gagal memuat log keuangan.</td></tr>`;
+            console.error(e);
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-danger">Terjadi kesalahan koneksi ke server.</td></tr>`;
         }
     }
 

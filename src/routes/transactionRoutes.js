@@ -90,9 +90,11 @@ router.get('/active', (req, res) => {
     });
 });
 
-// 3. GET: Ambil Riwayat Semua Transaksi (History)
+// 3. GET: Ambil Riwayat Semua Transaksi (History dengan Filter Opsional)
 router.get('/history', (req, res) => {
-    const query = `
+    const { search, payment_method, status } = req.query;
+
+    let query = `
         SELECT t.*,
                json_group_array(
                        json_object('name', p.name, 'quantity', td.quantity, 'price', td.price)
@@ -100,11 +102,34 @@ router.get('/history', (req, res) => {
         FROM [Transaction] t
                  LEFT JOIN TransactionDetail td ON t.id = td.transaction_id
                  LEFT JOIN Product p ON td.product_id = p.id
-        GROUP BY t.id
-        ORDER BY t.id DESC
     `;
 
-    db.all(query, [], (err, rows) => {
+    const conditions = [];
+    const params = [];
+
+    if (search) {
+        conditions.push(`(t.customer_name LIKE ? OR t.invoice_code LIKE ? OR t.invoice_number LIKE ?)`);
+        const keyword = `%${search}%`;
+        params.push(keyword, keyword, keyword);
+    }
+
+    if (payment_method && payment_method !== 'ALL') {
+        conditions.push(`t.payment_method = ?`);
+        params.push(payment_method);
+    }
+
+    if (status && status !== 'ALL') {
+        conditions.push(`t.status = ?`);
+        params.push(status);
+    }
+
+    if (conditions.length > 0) {
+        query += ` WHERE ` + conditions.join(' AND ');
+    }
+
+    query += ` GROUP BY t.id ORDER BY t.id DESC`;
+
+    db.all(query, params, (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
 
         const formattedRows = (rows || []).map(row => {
@@ -129,7 +154,7 @@ router.get('/financial-logs', (req, res) => {
 // 5. GET: Ambil Ringkasan Omset
 router.get('/stats', (req, res) => {
     const query = `
-        SELECT 
+        SELECT
             COALESCE(SUM(total_amount), 0) as total_omset,
             COUNT(id) as total_transactions
         FROM [Transaction]
@@ -154,7 +179,6 @@ router.put('/:id/status', (req, res) => {
     });
 });
 
-
 // 7. GET: Ambil Tren Pendapatan Harian untuk Grafik
 router.get('/revenue-trend', (req, res) => {
     const query = `
@@ -164,6 +188,21 @@ router.get('/revenue-trend', (req, res) => {
         GROUP BY DATE(created_at)
         ORDER BY DATE(created_at) ASC
         LIMIT 7
+    `;
+    db.all(query, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ data: rows || [] });
+    });
+});
+
+// 8. GET: Ambil Rekapitulasi Jumlah Pemasukan Harian Saja
+router.get('/daily-revenue', (req, res) => {
+    const query = `
+        SELECT DATE(created_at) as date, SUM(amount) as total_amount, COUNT(id) as total_transactions
+        FROM FinancialLog
+        WHERE type = 'income'
+        GROUP BY DATE(created_at)
+        ORDER BY DATE(created_at) DESC
     `;
     db.all(query, [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });

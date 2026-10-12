@@ -191,7 +191,7 @@
                 </button>
                 <div>
                     <h4 class="fw-bold mb-0 text-dark fs-5 fs-md-4"><i class="fa-solid fa-boxes-stacked text-warning me-2"></i> Kelola Menu & Stok</h4>
-                    <p class="text-muted small mb-0 d-none d-sm-block">Manajemen daftar produk, harga, dan ketersediaan stok bahan kedai kopi</p>
+                    <p class="text-muted small mb-0 d-none d-sm-block">Manajemen daftar produk, harga modal, harga jual, dan restock otomatis</p>
                 </div>
             </div>
 
@@ -221,17 +221,18 @@
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light text-uppercase fs-7 text-secondary">
                                 <tr>
-                                    <th class="ps-4 py-3" style="width: 70px;">No</th>
-                                    <th class="py-3" style="width: 90px;">Gambar</th>
+                                    <th class="ps-4 py-3" style="width: 60px;">No</th>
+                                    <th class="py-3" style="width: 80px;">Gambar</th>
                                     <th class="py-3">Nama Produk</th>
                                     <th class="py-3">Kategori</th>
-                                    <th class="py-3">Harga</th>
+                                    <th class="py-3">Harga Beli (Modal)</th>
+                                    <th class="py-3">Harga Jual</th>
                                     <th class="py-3">Stok</th>
-                                    <th class="text-end pe-4 py-3" style="width: 150px;">Aksi</th>
+                                    <th class="text-end pe-4 py-3" style="width: 180px;">Aksi</th>
                                 </tr>
                                 </thead>
                                 <tbody id="productTableBody">
-                                <tr><td colspan="7" class="text-center py-5 text-muted">Memuat data produk...</td></tr>
+                                <tr><td colspan="8" class="text-center py-5 text-muted">Memuat data produk...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -257,7 +258,7 @@
                 <div class="modal-body p-4">
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Nama Produk</label>
-                        <input type="text" id="prodName" class="form-control" placeholder="Contoh: Espresso Double" required>
+                        <input type="text" id="prodName" class="form-control" placeholder="Contoh: Kopi Susu / Air Mineral" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Kategori</label>
@@ -269,13 +270,17 @@
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-6">
-                            <label class="form-label fw-semibold">Harga (Rp)</label>
-                            <input type="number" id="prodPrice" class="form-control" placeholder="18000" required>
+                            <label class="form-label fw-semibold">Harga Beli Modal (Rp)</label>
+                            <input type="number" id="prodBuyPrice" class="form-control" placeholder="2500" value="0">
                         </div>
                         <div class="col-6">
-                            <label class="form-label fw-semibold">Jumlah Stok</label>
-                            <input type="number" id="prodStock" class="form-control" placeholder="50" required>
+                            <label class="form-label fw-semibold">Harga Jual (Rp)</label>
+                            <input type="number" id="prodPrice" class="form-control" placeholder="18000" required>
                         </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Jumlah Stok Awal</label>
+                        <input type="number" id="prodStock" class="form-control" placeholder="50" value="0" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Deskripsi (Opsional)</label>
@@ -296,42 +301,38 @@
 </div>
 
 <!-- ========================================== -->
-<!-- MODAL DETAIL / LIHAT PRODUK -->
+<!-- MODAL RESTOCK CEPAT -->
 <!-- ========================================== -->
-<div class="modal fade" id="viewProductModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="restockModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-dark text-white">
-                <h5 class="modal-title fw-bold"><i class="fa-solid fa-eye text-warning me-2"></i>Detail Produk</h5>
+                <h5 class="modal-title fw-bold"><i class="fa-solid fa-boxes-packing text-warning me-2"></i>Restock Barang</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-4">
-                <div class="text-center mb-4">
-                    <div id="viewProductImgContainer" class="mb-3">
-                        <!-- Tempat gambar produk dimuat -->
+            <form id="restockForm">
+                <input type="hidden" id="restockProdId">
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-3">Tambah stok dan catat modal belanja ke Log Keuangan secara otomatis.</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Nama Produk</label>
+                        <input type="text" id="restockProdName" class="form-control bg-light" readonly>
                     </div>
-                    <h4 id="viewProductName" class="fw-bold text-dark mb-1"></h4>
-                    <span id="viewProductCategory" class="badge bg-light text-dark border"></span>
-                </div>
-
-                <div class="bg-light p-3 rounded-3 border">
-                    <div class="row mb-2">
-                        <div class="col-4 fw-semibold text-muted">Harga</div>
-                        <div class="col-8 text-success fw-bold" id="viewProductPrice"></div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Jumlah Tambah Stok (Pcs)</label>
+                        <input type="number" id="restockQty" class="form-control" placeholder="Contoh: 12" min="1" required>
                     </div>
-                    <div class="row mb-2">
-                        <div class="col-4 fw-semibold text-muted">Stok</div>
-                        <div class="col-8 text-dark" id="viewProductStock"></div>
-                    </div>
-                    <div class="row">
-                        <div class="col-4 fw-semibold text-muted">Deskripsi</div>
-                        <div class="col-8 text-dark" id="viewProductDesc"></div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Harga Beli Satuan (Rp)</label>
+                        <input type="number" id="restockBuyPrice" class="form-control" placeholder="Contoh: 2500" required>
+                        <small class="text-muted" style="font-size: 11px;">Total belanja akan otomatis masuk ke Pengeluaran.</small>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer bg-light px-4 py-3">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Tutup</button>
-            </div>
+                <div class="modal-footer bg-light px-4 py-3">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning text-white fw-semibold px-4">Proses Restock</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -363,13 +364,17 @@
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-6">
-                            <label class="form-label fw-semibold">Harga (Rp)</label>
-                            <input type="number" id="editProdPrice" class="form-control" required>
+                            <label class="form-label fw-semibold">Harga Beli Modal (Rp)</label>
+                            <input type="number" id="editProdBuyPrice" class="form-control">
                         </div>
                         <div class="col-6">
-                            <label class="form-label fw-semibold">Jumlah Stok</label>
-                            <input type="number" id="editProdStock" class="form-control" required>
+                            <label class="form-label fw-semibold">Harga Jual (Rp)</label>
+                            <input type="number" id="editProdPrice" class="form-control" required>
                         </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Jumlah Stok</label>
+                        <input type="number" id="editProdStock" class="form-control" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Deskripsi (Opsional)</label>
@@ -456,12 +461,12 @@
         window.location.href = '/login.html';
     }
 
-    // Fungsi Render Tabel dengan Nomor Urut mulai dari 1
+    // Fungsi Render Tabel Produk
     function renderTable(products) {
         const tbody = document.getElementById('productTableBody');
 
         if (products.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted">Tidak ada produk yang ditemukan.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">Tidak ada produk yang ditemukan.</td></tr>`;
             return;
         }
 
@@ -474,8 +479,11 @@
                 <tr>
                     <td class="ps-4 fw-bold text-secondary">${index + 1}</td>
                     <td>${imageTag}</td>
-                    <td class="fw-semibold text-dark">${p.name}</td>
+                    <td>
+                        <span class="fw-semibold text-dark">${p.name}</span>
+                    </td>
                     <td><span class="badge bg-light text-dark border px-2 py-1">${p.category || 'General'}</span></td>
+                    <td class="text-muted">Rp ${Number(p.buy_price || 0).toLocaleString('id-ID')}</td>
                     <td class="fw-bold text-success">Rp ${Number(p.price).toLocaleString('id-ID')}</td>
                     <td>
                         <span class="badge ${p.stock < 10 ? 'bg-danger' : 'bg-success'} px-2 py-1">
@@ -483,8 +491,8 @@
                         </span>
                     </td>
                     <td class="text-end pe-4">
-                        <button class="btn btn-sm btn-outline-info me-1" onclick="openViewModal(${p.id})" title="Lihat Detail">
-                            <i class="fa-solid fa-eye"></i>
+                        <button class="btn btn-sm btn-outline-success me-1" onclick="openRestockModal(${p.id})" title="Restock Stok">
+                            <i class="fa-solid fa-boxes-packing"></i>
                         </button>
                         <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditModal(${p.id})" title="Edit">
                             <i class="fa-solid fa-pen"></i>
@@ -505,11 +513,11 @@
             allProducts = result.data || [];
             renderTable(allProducts);
         } catch (e) {
-            document.getElementById('productTableBody').innerHTML = `<tr><td colspan="7" class="text-center py-5 text-danger">Gagal memuat produk.</td></tr>`;
+            document.getElementById('productTableBody').innerHTML = `<tr><td colspan="8" class="text-center py-5 text-danger">Gagal memuat produk.</td></tr>`;
         }
     }
 
-    // Fitur Pencarian Real-time
+    // Pencarian Real-time
     document.getElementById('searchInput').addEventListener('input', (e) => {
         const keyword = e.target.value.toLowerCase().trim();
         const filtered = allProducts.filter(p =>
@@ -519,10 +527,12 @@
         renderTable(filtered);
     });
 
+    // Tambah Produk Baru
     document.getElementById('addProductForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const name = document.getElementById('prodName').value;
         const category = document.getElementById('prodCategory').value;
+        const buy_price = document.getElementById('prodBuyPrice').value;
         const price = document.getElementById('prodPrice').value;
         const stock = document.getElementById('prodStock').value;
         const description = document.getElementById('prodDesc').value;
@@ -532,7 +542,7 @@
             const res = await fetch('/api/products', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, category, price: Number(price), stock: Number(stock), description, image_url })
+                body: JSON.stringify({ name, category, buy_price: Number(buy_price), price: Number(price), stock: Number(stock), description, image_url })
             });
 
             if (res.ok) {
@@ -547,27 +557,47 @@
         }
     });
 
-    function openViewModal(id) {
+    // Buka Modal Restock Cepat
+    function openRestockModal(id) {
         const product = allProducts.find(p => p.id === id);
         if (!product) return;
 
-        document.getElementById('viewProductName').innerText = product.name;
-        document.getElementById('viewProductCategory').innerText = product.category || 'Coffee';
-        document.getElementById('viewProductPrice').innerText = `Rp ${Number(product.price).toLocaleString('id-ID')}`;
-        document.getElementById('viewProductStock').innerText = `${product.stock} pcs`;
-        document.getElementById('viewProductDesc').innerText = product.description || 'Tidak ada deskripsi.';
+        document.getElementById('restockProdId').value = product.id;
+        document.getElementById('restockProdName').value = product.name;
+        document.getElementById('restockBuyPrice').value = product.buy_price || 0;
+        document.getElementById('restockQty').value = '';
 
-        const imgContainer = document.getElementById('viewProductImgContainer');
-        if (product.image_url) {
-            imgContainer.innerHTML = `<img src="${product.image_url}" alt="${product.name}" class="rounded shadow-sm border" style="width: 120px; height: 120px; object-fit: cover;">`;
-        } else {
-            imgContainer.innerHTML = `<div class="text-muted fst-italic p-3 bg-light rounded border">Tidak ada gambar produk</div>`;
-        }
-
-        const viewModal = new bootstrap.Modal(document.getElementById('viewProductModal'));
-        viewModal.show();
+        new bootstrap.Modal(document.getElementById('restockModal')).show();
     }
 
+    // Submit Restock Cepat
+    document.getElementById('restockForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('restockProdId').value;
+        const qty_add = document.getElementById('restockQty').value;
+        const buy_price = document.getElementById('restockBuyPrice').value;
+
+        try {
+            const res = await fetch(`/api/products/${id}/restock`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ qty_add: Number(qty_add), buy_price: Number(buy_price) })
+            });
+
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('restockModal')).hide();
+                loadProducts();
+                alert('Restock berhasil! Pengeluaran kas telah dicatat otomatis.');
+            } else {
+                const err = await res.json();
+                alert('Gagal restock: ' + (err.error || 'Terjadi kesalahan'));
+            }
+        } catch (err) {
+            console.error('Restock error:', err);
+        }
+    });
+
+    // Buka Modal Edit
     function openEditModal(id) {
         const product = allProducts.find(p => p.id === id);
         if (!product) return;
@@ -575,20 +605,22 @@
         document.getElementById('editProdId').value = product.id;
         document.getElementById('editProdName').value = product.name;
         document.getElementById('editProdCategory').value = product.category || 'Coffee';
+        document.getElementById('editProdBuyPrice').value = product.buy_price || 0;
         document.getElementById('editProdPrice').value = product.price;
         document.getElementById('editProdStock').value = product.stock;
         document.getElementById('editProdDesc').value = product.description || '';
         document.getElementById('editProdImage').value = product.image_url || '';
 
-        const editModal = new bootstrap.Modal(document.getElementById('editProductModal'));
-        editModal.show();
+        new bootstrap.Modal(document.getElementById('editProductModal')).show();
     }
 
+    // Submit Edit Produk
     document.getElementById('editProductForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = document.getElementById('editProdId').value;
         const name = document.getElementById('editProdName').value;
         const category = document.getElementById('editProdCategory').value;
+        const buy_price = document.getElementById('editProdBuyPrice').value;
         const price = document.getElementById('editProdPrice').value;
         const stock = document.getElementById('editProdStock').value;
         const description = document.getElementById('editProdDesc').value;
@@ -598,7 +630,7 @@
             const res = await fetch(`/api/products/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, category, price: Number(price), stock: Number(stock), description, image_url })
+                body: JSON.stringify({ name, category, buy_price: Number(buy_price), price: Number(price), stock: Number(stock), description, image_url })
             });
 
             if (res.ok) {
@@ -612,6 +644,7 @@
         }
     });
 
+    // Hapus Produk
     async function deleteProduct(id) {
         if (!confirm('Apakah Anda yakin ingin menghapus produk ini?')) return;
         try {
